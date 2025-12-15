@@ -47,11 +47,11 @@ jobs:
         id: pharynx
         with:
           pharynx-version: "0.3.0"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v6
         with:
           name: RedSkyBlockX.phar
           path: ${{steps.pharynx.outputs.output-phar}}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v6
         with:
           name: RedSkyBlockX
           path: ${{steps.pharynx.outputs.output-dir}}
