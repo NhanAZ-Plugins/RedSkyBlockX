@@ -85,6 +85,7 @@ class Island {
 	/** @var array<int, string> */
 	private array $islandChat = [];
 
+	/** @param array<string, mixed> $islandData */
 	public function __construct(array $islandData) {
 		$this->creator = (string) $islandData["creator"];
 		$this->name = (string) $islandData["name"];
@@ -141,7 +142,8 @@ class Island {
 	/** @param array<array-key, mixed> $point */
 	private static function hasFiniteCoordinates(array $point) : bool {
 		foreach ([0, 1, 2] as $axis) {
-			if (!isset($point[$axis]) || !is_numeric($point[$axis]) || !is_finite((float) $point[$axis])) {
+			$value = $point[$axis] ?? null;
+			if ((!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) || !is_finite((float) $value)) {
 				return false;
 			}
 		}

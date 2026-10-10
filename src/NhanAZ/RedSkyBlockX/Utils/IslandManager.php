@@ -73,6 +73,7 @@ class IslandManager {
 		return is_array($data) && !array_is_list($data) ? $data : null;
 	}
 
+	/** @param array<string, mixed> $islandData */
 	public function constructIsland(array $islandData, string $playerName) : Island {
 		$islandData = $this->verifyIslandDataIntegrity($islandData, $playerName);
 		$island = new Island($islandData);
@@ -81,6 +82,9 @@ class IslandManager {
 		return $island;
 	}
 
+	/** @param array<string, mixed> $islandData
+	 * @return array<string, mixed>
+	 */
 	public function verifyIslandDataIntegrity(array $islandData, string $playerName) : array {
 		$requiredKeys = [
 			"creator",
@@ -132,6 +136,7 @@ class IslandManager {
 		}
 	}
 
+	/** @return array<string, mixed> */
 	public function deconstructIsland(Island $island) : array {
 		$islandData = [
 			"creator" => $island->getCreator(),
@@ -304,6 +309,7 @@ class IslandManager {
 		return $foundIsland;
 	}
 
+	/** @return list<string> */
 	public function getPlayersAtIsland(Island $island) : array {
 		$masterWorld = $this->getMasterWorld();
 		if ($masterWorld === null) {
@@ -344,6 +350,7 @@ class IslandManager {
 		}
 	}
 
+	/** @return array<string, int> */
 	public function getTopIslands() : array {
 		$topIslands = [];
 		foreach ($this->islands as $island) {

@@ -142,6 +142,10 @@ class SkyblockListener implements Listener {
 		$blockZ = round($blockPos->z);
 		$zoneWorld = ZoneManager::getZoneWorld();
 		$blockWorld = $blockPos->world;
+		if ($blockWorld === null) {
+			$event->cancel();
+			return;
+		}
 		// check if using a zonetool and take appropriate actions if true:
 		if ($item->equals($zoneShovel)) {
 			if ($action === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
@@ -189,6 +193,10 @@ class SkyblockListener implements Listener {
 		$blockZ = round($blockPos->z);
 		$zoneWorld = ZoneManager::getZoneWorld();
 		$blockWorld = $blockPos->world;
+		if ($blockWorld === null) {
+			$event->cancel();
+			return;
+		}
 		// check if using a zone tool and take the appropriate actions if true:
 		if ($item->equals($zoneShovel)) {
 			ZoneManager::setSecondPosition($blockPos);
