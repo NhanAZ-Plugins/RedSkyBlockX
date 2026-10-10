@@ -10,6 +10,9 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginLogger;
 use pocketmine\Server;
 use pocketmine\utils\Config;
+use pocketmine\block\Block;
+use pocketmine\block\VanillaBlocks;
+use pocketmine\world\Position;
 use pocketmine\world\World;
 use pocketmine\world\WorldManager;
 
@@ -28,6 +31,16 @@ class MissingZoneServer extends Server {
 
 	public function getWorldManager() : WorldManager {
 		return $this->fixtureWorldManager;
+	}
+}
+
+class FixtureZoneWorld extends World {
+	public function getBlockAt(int $x, int $y, int $z, bool $cached = true, bool $addToCache = true) : Block {
+		return VanillaBlocks::STONE();
+	}
+
+	public function getFolderName() : string {
+		return 'FixtureWorld';
 	}
 }
 
@@ -67,6 +80,25 @@ try {
 	}
 	if ($config->get('Zone World') !== 'TemporarilyMissing') {
 		throw new RuntimeException('An unavailable world must keep its configured name for recovery');
+	}
+	(new ReflectionProperty(ZoneManager::class, 'zone'))->setValue(null, ['stone']);
+	if (ZoneManager::updateZone() || ZoneManager::createZone() || ZoneManager::saveZone() || ZoneManager::getZone() !== ['stone']) {
+		throw new RuntimeException('Unavailable zone state must not erase the existing template or report success');
+	}
+	if ($config->get('Zone World') !== 'TemporarilyMissing') {
+		throw new RuntimeException('Failed zone updates must not rewrite the configured world');
+	}
+	$world = (new ReflectionClass(FixtureZoneWorld::class))->newInstanceWithoutConstructor();
+	ZoneManager::setZoneWorld($world);
+	ZoneManager::setFirstPosition(new Position(0, 0, 0, $world));
+	ZoneManager::setSecondPosition(new Position(0, 0, 0, $world));
+	ZoneManager::setSpawnPosition(new Position(0, 1, 0, $world));
+	if (!ZoneManager::createZone() || ZoneManager::getZone() !== ['stone'] || $config->get('Zone World') !== 'FixtureWorld' || $config->get('CSpawnVals') !== [0, 3, 0]) {
+		throw new RuntimeException('A selected valid zone must be captured and saved');
+	}
+	ZoneManager::setZoneWorld();
+	if (ZoneManager::updateZone() || ZoneManager::getZone() !== ['stone'] || $config->get('Zone World') !== 'FixtureWorld') {
+		throw new RuntimeException('A later missing world must preserve the last valid template');
 	}
 } finally {
 	if (is_file($path)) unlink($path);

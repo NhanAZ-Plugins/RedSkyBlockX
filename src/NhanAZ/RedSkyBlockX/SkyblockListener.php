@@ -212,7 +212,10 @@ class SkyblockListener implements Listener {
 			if ($zonePos1 !== null && $zonePos2 !== null) {
 				if ($blockWorld === $zoneWorld) {
 					ZoneManager::setSpawnPosition($blockPos);
-					ZoneManager::createZone();
+					if (!ZoneManager::createZone()) {
+						$player->sendMessage($plugin->mShop->construct("ZONE_UNAVAILABLE"));
+						return;
+					}
 					ZoneManager::setZoneKeeper();
 					ZoneManager::setFirstPosition();
 					ZoneManager::setSecondPosition();

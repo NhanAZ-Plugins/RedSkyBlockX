@@ -36,6 +36,7 @@ WRONG_WORLD: "{RED}You did not set your Zone Positions in this world." # Paramet
 # Messages for the update zone command:
 UPDATE_ZONE: "{GREEN}Your custom island zone has been updated!"
 NO_ZONE: "{RED}You have not created a custom island zone yet!"
+ZONE_UNAVAILABLE: "{RED}The custom island zone cannot be updated until its world and positions are available."
 
 # Message sent if an island command is used before a SkyBlock world is set.
 NO_MASTER_WORLD: "{RED}A SkyBlock world must be selected before this command may be used."

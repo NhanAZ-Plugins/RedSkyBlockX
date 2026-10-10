@@ -100,34 +100,59 @@ class ZoneManager {
 		return $value;
 	}
 
-	public static function createZone() : void {
-		$zone = self::$zone;
+	public static function createZone() : bool {
 		$pos1 = self::$pos1;
 		$pos2 = self::$pos2;
 		$zoneWorld = self::$zoneWorld;
 		$spawnPosition = self::$spawnPosition;
+		if ($pos1 === null || $pos2 === null || $spawnPosition === null || $zoneWorld === null || $pos1->world !== $zoneWorld || $pos2->world !== $zoneWorld || $spawnPosition->world !== $zoneWorld) {
+			return false;
+		}
 		$plugin = self::$plugin;
-		$cSpawnVals = $plugin->skyblock->get("CSpawnVals", []);
 		$zoneX = [$pos1->x, $pos2->x];
 		$zoneY = [$pos1->y, $pos2->y];
 		$zoneZ = [$pos1->z, $pos2->z];
-		self::$zoneStartPosition = [min($zoneX), min($zoneY), min($zoneZ)];
-		self::$zoneSize = [max($zoneX) - min($zoneX), max($zoneY) - min($zoneY), max($zoneZ) - min($zoneZ)];
-		//calculate spawn finding values relative to the position of the selected spawn within the island zone
-		$islandHeight = self::$zoneSize[1];
-		$cSpawnVals[0] = $spawnPosition->x - self::$zoneStartPosition[0];
-		$cSpawnVals[1] = $spawnPosition->y - self::$zoneStartPosition[1] + 2; // + 2 to account for player height
-		$cSpawnVals[2] = $spawnPosition->z - self::$zoneStartPosition[2];
-		$plugin->skyblock->set("CSpawnVals", $cSpawnVals);
-		self::updateZone();
+		$start = [min($zoneX), min($zoneY), min($zoneZ)];
+		$size = [max($zoneX) - min($zoneX), max($zoneY) - min($zoneY), max($zoneZ) - min($zoneZ)];
+		foreach ([$start, $size, [$spawnPosition->x, $spawnPosition->y, $spawnPosition->z]] as $coordinates) {
+			foreach ($coordinates as $coordinate) {
+				if (!is_finite((float) $coordinate)) return false;
+			}
+		}
+		$oldStart = self::$zoneStartPosition;
+		$oldSize = self::$zoneSize;
+		$oldSpawn = self::$zoneSpawn;
+		$oldCSpawnVals = $plugin->skyblock->get("CSpawnVals", []);
+		self::$zoneStartPosition = $start;
+		self::$zoneSize = $size;
+		self::$zoneSpawn = [round($spawnPosition->x), round($spawnPosition->y), round($spawnPosition->z)];
+		$plugin->skyblock->set("CSpawnVals", [$spawnPosition->x - $start[0], $spawnPosition->y - $start[1] + 2, $spawnPosition->z - $start[2]]);
+		if (!self::updateZone()) {
+			self::$zoneStartPosition = $oldStart;
+			self::$zoneSize = $oldSize;
+			self::$zoneSpawn = $oldSpawn;
+			$plugin->skyblock->set("CSpawnVals", $oldCSpawnVals);
+			return false;
+		}
+		return true;
 	}
 
-	public static function updateZone() : void {
-		self::clearZone();
-		$zone = self::$zone;
+	public static function updateZone() : bool {
 		$zoneWorld = self::$zoneWorld;
 		$zoneStartPosition = self::$zoneStartPosition;
 		$zoneSize = self::$zoneSize;
+		if ($zoneWorld === null || count($zoneStartPosition) !== 3 || count($zoneSize) !== 3 || (self::$zoneSpawn === [] && self::$spawnPosition === null)) {
+			return false;
+		}
+		foreach ([$zoneStartPosition, $zoneSize] as $coordinates) {
+			foreach ($coordinates as $coordinate) {
+				if (!is_finite((float) $coordinate)) return false;
+			}
+		}
+		foreach ($zoneSize as $dimension) {
+			if ($dimension < 0) return false;
+		}
+		$zone = [];
 		for ($x = $zoneStartPosition[0]; $x <= $zoneStartPosition[0] + $zoneSize[0]; $x++) {
 			for ($y = $zoneStartPosition[1]; $y <= $zoneStartPosition[1] + $zoneSize[1]; $y++) {
 				for ($z = $zoneStartPosition[2]; $z <= $zoneStartPosition[2] + $zoneSize[2]; $z++) {
@@ -139,7 +164,7 @@ class ZoneManager {
 			}
 		}
 		self::$zone = $zone;
-		self::saveZone();
+		return self::saveZone();
 	}
 
 	/** @return list<string> */
@@ -147,14 +172,16 @@ class ZoneManager {
 		return self::$zone;
 	}
 
-	public static function saveZone() : void {
+	public static function saveZone() : bool {
 		$plugin = self::$plugin;
 		$zone = self::$zone;
+		$zoneWorld = self::$zoneWorld;
+		if ($zoneWorld === null) return false;
 		if (self::$zoneSpawn === []) {
 			$spawnPosition = self::$spawnPosition;
+			if ($spawnPosition === null) return false;
 			self::$zoneSpawn = [round($spawnPosition->x), round($spawnPosition->y), round($spawnPosition->z)];
 		}
-		$zoneWorld = self::$zoneWorld;
 		$zoneStartPosition = self::$zoneStartPosition;
 		$zoneSize = self::$zoneSize;
 		$plugin->skyblock->set("Zone", $zone);
@@ -163,6 +190,7 @@ class ZoneManager {
 		$plugin->skyblock->set("Zone Size", $zoneSize);
 		$plugin->skyblock->set("Zone Position", $zoneStartPosition);
 		$plugin->skyblock->save();
+		return true;
 	}
 
 	public static function clearZone() : void {

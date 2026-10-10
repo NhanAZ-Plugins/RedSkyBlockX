@@ -21,7 +21,10 @@ class UpdateZone extends SBSubCommand {
 	 */
 	public function onRun(CommandSender $sender, string $aliasUsed, array $args) : void {
 		if ($this->checkZone()) {
-			ZoneManager::updateZone();
+			if (!ZoneManager::updateZone()) {
+				$sender->sendMessage($this->getMShop()->construct("ZONE_UNAVAILABLE"));
+				return;
+			}
 			$message = $this->getMShop()->construct("UPDATE_ZONE");
 			$sender->sendMessage($message);
 		} else {
