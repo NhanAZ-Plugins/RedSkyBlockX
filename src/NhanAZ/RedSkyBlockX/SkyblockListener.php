@@ -24,12 +24,10 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use function array_key_exists;
-use function array_search;
 use function array_sum;
 use function count;
 use function in_array;
@@ -94,15 +92,12 @@ class SkyblockListener implements Listener {
 		}
 	}
 
-	public function onDrop(PlayerDropItemEvent $event) {
+	public function onDrop(PlayerDropItemEvent $event) : void {
 		$item = $event->getItem();
-		$player = $event->getPlayer();
 		$zoneShovel = ZoneManager::getZoneShovel();
 		$spawnFeather = ZoneManager::getSpawnFeather();
 		if ($item->equals($zoneShovel) || $item->equals($spawnFeather)) {
 			$event->cancel();
-			$index = array_search($item, $player->getInventory()->getContents(), true);
-			$player->getInventory()->setItem($index, VanillaItems::AIR());
 		}
 	}
 

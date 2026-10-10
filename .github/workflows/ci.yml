@@ -33,6 +33,9 @@ jobs:
       - name: Install PHPStan Composer dependencies
         run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
 
+      - name: Test zone tool drop and cleanup behavior
+        run: php tests/zone-tools.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:

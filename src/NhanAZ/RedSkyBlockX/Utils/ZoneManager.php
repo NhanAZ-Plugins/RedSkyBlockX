@@ -12,8 +12,6 @@ use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use pocketmine\world\World;
 use function array_push;
-use function array_search;
-use function is_bool;
 use function max;
 use function min;
 use function round;
@@ -146,20 +144,11 @@ class ZoneManager {
 
 	public static function clearZoneTools(Player $player) : void {
 		$playerInv = $player->getInventory();
-		$invContents = $playerInv->getContents();
-		if ($playerInv->contains(self::$zoneShovel)) {
-			$index = array_search(self::$zoneShovel, $invContents, true);
-			if (is_bool($index)) return;
-			$playerInv->setItem($index, VanillaItems::AIR());
+		foreach ($playerInv->getContents() as $index => $item) {
+			if ($item->equals(self::$zoneShovel) || $item->equals(self::$spawnFeather)) {
+				$playerInv->setItem($index, VanillaItems::AIR());
+			}
 		}
-		if ($playerInv->contains(self::$spawnFeather)) {
-			$index = array_search(self::$spawnFeather, $invContents, true);
-			$playerInv->setItem($index, VanillaItems::AIR());
-		}
-		if ($playerInv->getItemInHand()->equals(self::$zoneShovel) || $playerInv->getItemInHand()->equals(self::$spawnFeather)) {
-			$playerInv->setItemInHand(VanillaItems::AIR());
-		}
-		return;
 	}
 
 	public static function getZoneKeeper() : ?Player {
