@@ -25,7 +25,7 @@ $required = [
     'CortexPE/Commando/PacketHooker.php',
     'muqsit/simplepackethandler/SimplePacketHandler.php',
     'muqsit/invmenu/InvMenuHandler.php',
-    'NhanAZ/libBedrock/libBedrock.php',
+    'src/NhanAZ/RedSkyBlockX/Utils/ItemParser.php',
 ];
 $found = [];
 foreach (new RecursiveIteratorIterator($phar) as $entry) {

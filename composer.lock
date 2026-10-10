@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1152ee02a1a170110b0ff8e3bbb9d431",
+    "content-hash": "05b62dc6286852becd90e0f0c5459845",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -323,49 +323,6 @@
                 "source": "https://github.com/Muqsit/SimplePacketHandler/tree/pm5"
             },
             "time": "2023-06-01T23:54:58+00:00"
-        },
-        {
-            "name": "nhanaz/libbedrock",
-            "version": "v1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/NhanAZ/libBedrock.git",
-                "reference": "646109c8300377610f652b4ecaa5255074037bba"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/NhanAZ/libBedrock/zipball/646109c8300377610f652b4ecaa5255074037bba",
-                "reference": "646109c8300377610f652b4ecaa5255074037bba",
-                "shasum": ""
-            },
-            "require": {
-                "pocketmine/pocketmine-mp": "5.0.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "1.8.9"
-            },
-            "type": "library",
-            "extra": {
-                "virion": {
-                    "spec": "3.0",
-                    "namespace-root": "NhanAZ\\libBedrock"
-                }
-            },
-            "autoload": {
-                "classmap": [
-                    "src"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Common features for PocketMine-MP plugins",
-            "support": {
-                "issues": "https://github.com/NhanAZ/libBedrock/issues",
-                "source": "https://github.com/NhanAZ/libBedrock/tree/v1.0.0"
-            },
-            "time": "2023-06-01T15:48:33+00:00"
         },
         {
             "name": "pocketmine/bedrock-block-upgrade-schema",
@@ -3358,12 +3315,12 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "cortexpe/commando": 20,
-        "muqsit/simple-packet-handler": 20,
-        "muqsit/invmenu": 20
+        "muqsit/invmenu": 20,
+        "muqsit/simple-packet-handler": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

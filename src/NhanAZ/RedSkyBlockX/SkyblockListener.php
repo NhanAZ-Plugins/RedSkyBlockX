@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NhanAZ\RedSkyBlockX;
 
-use NhanAZ\libBedrock\StringToBlock;
+use NhanAZ\RedSkyBlockX\Utils\ItemParser;
 use NhanAZ\RedSkyBlockX\Utils\ZoneManager;
 use pocketmine\block\Block;
 use pocketmine\event\block\BlockBreakEvent;
@@ -68,7 +68,7 @@ class SkyblockListener implements Listener {
 					foreach ($generatorOres as $blockName => $oreChance) {
 						$percentChance += $oreChance;
 						if ($randomNumber <= $percentChance) {
-							$genBlock = StringToBlock::parse(strval($blockName));
+							$genBlock = ItemParser::parseBlock(strval($blockName));
 							break;
 						}
 					}

@@ -12,6 +12,4 @@ projects:
         version: 0.1.3
       - src: Muqsit/InvMenu/InvMenu
         version: 4.6.1
-      - src: NhanAZ/libBedrock/libBedrock
-        version: 1.0.0
 ...

@@ -6,11 +6,11 @@ RedSkyBlockX is an experimental SkyBlock plugin source for Axolotl-PM. It contai
 
 ## Status and compatibility
 
-The plugin is under development and has no validated distributable PHAR. Do not install a PHAR produced by the current workflow on a production server. The artifact check rejects the build because it lacks a required Commando class. PHPStan at maximum level also reports unresolved source errors.
+The plugin is under development and has no validated distributable PHAR. Do not install a PHAR produced by the current workflow on a production server. The artifact check rejects the build because it lacks a required Commando class.
 
 `plugin.yml` declares Axolotl-PM API `5.0.0`. Source fixtures run in CI with PHP 8.2, but a complete plugin runtime test has not passed on Axolotl-PM. Neither the declared API nor the CI PHP version establishes compatibility with the full Axolotl-PM 5.x line.
 
-The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](https://github.com/Muqsit/InvMenu), [SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler), and [libBedrock](https://github.com/NhanAZ-Libraries/libBedrock). Its existing dependency lock and legacy build configuration are still being migrated and validated.
+The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](https://github.com/Muqsit/InvMenu), and [SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler). Item and block names are parsed with Axolotl-PM's native parsers. The remaining dependency lock and legacy build configuration are still being migrated and validated.
 
 ## Configuration and commands
 

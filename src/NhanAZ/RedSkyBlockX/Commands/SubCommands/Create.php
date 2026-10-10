@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace NhanAZ\RedSkyBlockX\Commands\SubCommands;
 
 use CortexPE\Commando\constraint\InGameRequiredConstraint;
-use NhanAZ\libBedrock\StringToBlock;
-use NhanAZ\libBedrock\StringToItem;
 use NhanAZ\RedSkyBlockX\Commands\SBSubCommand;
+use NhanAZ\RedSkyBlockX\Utils\ItemParser;
 use NhanAZ\RedSkyBlockX\Utils\ZoneManager;
 use pocketmine\block\tile\Chest;
 use pocketmine\block\tile\Tile;
@@ -120,7 +119,7 @@ class Create extends SBSubCommand {
 										for ($z = $lastZ; $z <= $lastZ + $zoneSize[2]; $z++) {
 											$blockData = explode(":", $zone[$counter]);
 											$blockName = $blockData[0];
-											$block = StringToBlock::parse($blockName);
+											$block = ItemParser::parseBlock($blockName);
 											$masterWorld->setBlock(new Vector3(floatval($x), floatval($y), floatval($z)), $block, false);
 											$counter++;
 										}
@@ -138,7 +137,7 @@ class Create extends SBSubCommand {
 								}
 								if (count($startingItems) !== 0) {
 									foreach ($startingItems as $itemName => $count) {
-										$item = StringToItem::parse(strval($itemName));
+											$item = ItemParser::parseItem(strval($itemName));
 										$item->setCount(intval($count));
 										$startingChest->getInventory()->addItem($item);
 									}

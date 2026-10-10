@@ -3,8 +3,7 @@
         "pocketmine/pocketmine-mp": "5.0.0",
         "cortexpe/commando": "dev-master",
         "muqsit/simple-packet-handler": "dev-pm5",
-        "muqsit/invmenu": "dev-pm5",
-        "nhanaz/libbedrock": "1.0.0"
+        "muqsit/invmenu": "dev-pm5"
     },
     "require-dev": {
         "phpstan/phpstan": "1.8.9",
