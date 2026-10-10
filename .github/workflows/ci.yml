@@ -59,6 +59,9 @@ jobs:
       - name: Test valuable block configuration validation
         run: php tests/valuable-blocks.php
 
+      - name: Test configuration merge and invalid file preservation
+        run: php tests/config-manager.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
