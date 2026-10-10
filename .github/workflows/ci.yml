@@ -33,7 +33,7 @@ jobs:
           restore-keys: "php-${{ matrix.php }}-composer-"
 
       - name: Install PHPStan Composer dependencies
-        run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
+        run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
 
       - name: Test zone tool drop and cleanup behavior
         run: php tests/zone-tools.php
@@ -77,30 +77,52 @@ jobs:
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
-    name: Build plugin PHAR
+    name: Build and smoke test plugin PHAR
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up PHP environment
-        uses: shivammathur/setup-php@c5fc0d8281aba02c7fda07d3a70cc5371548067d # 2.25.2
+        uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
           php-version: "8.2"
+          install-path: ./.php-bin
+          pm-version-major: "5"
       - name: Install Composer dependencies for PHAR build
-        run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
+        run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
       - name: Build plugin PHAR with Pharynx
-        uses: SOF3/pharynx@6926183c038643556b2cb2609e01fd18004794fe # v0.1 branch revision
-        id: pharynx
-        with:
-          pharynx-version: "0.3.0"
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            https://github.com/SOF3/pharynx/releases/download/0.3.0/pharynx.phar \
+            --output "$RUNNER_TEMP/pharynx.phar"
+          printf '%s  %s\n' \
+            'd8dfb21d0535c5220668008ebf296867a3b9952be19d8782f356a573b0f4efed' \
+            "$RUNNER_TEMP/pharynx.phar" | sha256sum --check
+          mkdir -p build
+          php -d phar.readonly=0 "$RUNNER_TEMP/pharynx.phar" \
+            -i . \
+            -s vendor/cortexpe/commando/src \
+            -s vendor/muqsit/simple-packet-handler/src \
+            -s vendor/muqsit/invmenu/src \
+            -a 'CortexPE\Commando' \
+            -a 'muqsit\simplepackethandler' \
+            -a 'muqsit\invmenu' \
+            -p=build/RedSkyBlockX.phar
       - name: Verify required classes in plugin PHAR
-        run: php tests/verify-phar.php '${{ steps.pharynx.outputs.output-phar }}'
-      - name: Upload plugin PHAR
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: RedSkyBlockX.phar
-          path: ${{steps.pharynx.outputs.output-phar}}
-      - name: Upload expanded build output
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: RedSkyBlockX
-          path: ${{steps.pharynx.outputs.output-dir}}
+        run: php tests/verify-phar.php build/RedSkyBlockX.phar
+      - name: Download pinned Axolotl-PM runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            https://github.com/axolotl-pm/PocketMine-MP/releases/download/5.49.1/PocketMine-MP.phar \
+            --output "$RUNNER_TEMP/PocketMine-MP.phar"
+          printf '%s  %s\n' \
+            'b62ce263c079a00498a49cd3eab0bfa454f4ba195e5f9d62e32927cfc805c665' \
+            "$RUNNER_TEMP/PocketMine-MP.phar" | sha256sum --check
+      - name: Smoke test isolated plugin startup
+        env:
+          SERVER_PHAR: ${{ runner.temp }}/PocketMine-MP.phar
+          PLUGIN_PHAR: build/RedSkyBlockX.phar
+        run: python3 .github/scripts/runtime-smoke.py
