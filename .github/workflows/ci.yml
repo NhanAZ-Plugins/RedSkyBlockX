@@ -50,6 +50,9 @@ jobs:
       - name: Test island creation after loading the master world
         run: php tests/create-world-load.php
 
+      - name: Test help command details with current Commando API
+        run: php tests/help-command.php
+
       - name: Test message formatting and malformed configuration values
         run: php tests/message-constructor.php
 
