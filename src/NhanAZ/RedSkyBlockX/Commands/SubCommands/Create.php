@@ -128,7 +128,7 @@ class Create extends SBSubCommand {
 											}
 										}
 									}
-									$plugin->islandManager->constructIsland($islandData, $sender->getName());
+									$island = $plugin->islandManager->constructIsland($islandData, $sender->getName());
 									$masterWorld->setBlock(new Vector3($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1), VanillaBlocks::CHEST());
 									$startingChest = $masterWorld->getTileAt($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1);
 									if (!$startingChest instanceof Tile) return;
@@ -144,7 +144,8 @@ class Create extends SBSubCommand {
 									$senderName = $sender->getName();
 									$doCreateTeleport = $plugin->cfg->get("Create Teleport");
 									if ($doCreateTeleport) $sender->teleport(new Position($initialSpawnPoint[0], $initialSpawnPoint[1], $initialSpawnPoint[2], $masterWorld));
-									if (file_put_contents($plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $senderName . ".json", json_encode($islandData)) !== false) {
+									$serialized = json_encode($plugin->islandManager->deconstructIsland($island));
+									if ($serialized !== false && file_put_contents($plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $senderName . ".json", $serialized) !== false) {
 										$message = $this->getMShop()->construct("ISLAND_CREATED");
 										$sender->sendMessage($message);
 									} else {

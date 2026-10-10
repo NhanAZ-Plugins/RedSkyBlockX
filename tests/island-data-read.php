@@ -58,8 +58,16 @@ try {
 		'initialspawnpoint' => [1, 2, 3],
 		'spawnpoint' => [1, 2, 3]
 	], 'Alice');
-	if ((new Island($validIsland))->getIslandCenter() !== [1, 3]) {
+	$island = new Island($validIsland);
+	if ($island->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A valid spawn point was rejected');
+	}
+	$stored = json_decode(json_encode($manager->deconstructIsland($island), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+	if (!isset($stored['settings']['safevoid'], $stored['stats']['blocks_broken'], $stored['permissions']['member']) || $stored['creator'] !== 'Alice') {
+		throw new RuntimeException('A newly created island must persist its initialized defaults');
+	}
+	if ((new Island($stored))->getIslandCenter() !== [1, 3]) {
+		throw new RuntimeException('A stored island must load with its original spawn point');
 	}
 } finally {
 	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'notes.txt'] as $fileName) {
@@ -73,4 +81,4 @@ try {
 	rmdir($base);
 }
 
-echo "PASS: island files preserve lookup and reject invalid data without deletion\n";
+echo "PASS: island files preserve lookup, valid defaults and invalid data\n";
