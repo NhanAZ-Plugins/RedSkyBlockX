@@ -9,6 +9,7 @@ use NhanAZ\RedSkyBlockX\SkyBlock;
 use NhanAZ\RedSkyBlockX\Utils\IslandManager;
 use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginLogger;
+use pocketmine\utils\Config;
 
 $base = sys_get_temp_dir() . '/redsky-island-read-' . bin2hex(random_bytes(6));
 $dataFolder = $base . '/RedSkyBlockX';
@@ -80,6 +81,13 @@ try {
 	if ((new Island($stored))->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A stored island must load with its original spawn point');
 	}
+	$plugin->cfg = new Config($dataFolder . '/config.yml', Config::YAML, []);
+	SkyBlock::$instance = $plugin;
+	$plugin->cfg->set('XP Gap', ['invalid']);
+	$plugin->cfg->set('LevelUp Difficulty', '1e999');
+	if ($island->calculateLevel(1) !== 0 || $island->getXPNeeded(1) !== 1) {
+		throw new RuntimeException('Malformed level settings must use finite positive fallbacks');
+	}
 } finally {
 	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
@@ -88,6 +96,10 @@ try {
 		}
 	}
 	rmdir($playersFolder);
+	$configPath = $dataFolder . '/config.yml';
+	if (is_file($configPath)) {
+		unlink($configPath);
+	}
 	rmdir($dataFolder);
 	rmdir($base);
 }

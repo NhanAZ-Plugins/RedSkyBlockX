@@ -442,10 +442,8 @@ class Island {
 	public function calculateLevel(int $experience) : int {
 		//formula for getting level from xp = x * ysqrt(xp)
 		//formula for getting xp required for a level = (level/x)^y
-		$xpGap = SkyBlock::getInstance()->cfg->get("XP Gap");
-		if ($xpGap <= 0) $xpGap = 0.01;
-		$difficulty = SkyBlock::getInstance()->cfg->get("LevelUp Difficulty");
-		if ($difficulty <= 0) $difficulty = 0.01;
+		$xpGap = self::readPositiveConfigNumber("XP Gap");
+		$difficulty = self::readPositiveConfigNumber("LevelUp Difficulty");
 		$currentLevel = floor($xpGap * exp(log($experience) / $difficulty));
 		$unroundedLevel = (float) $xpGap * exp(log($experience) / $difficulty);
 		if (abs($unroundedLevel - round($unroundedLevel)) < 0.0001) $currentLevel = round($unroundedLevel);
@@ -453,13 +451,20 @@ class Island {
 	}
 
 	public function getXPNeeded(int $experience) : int {
-		$xpGap = SkyBlock::getInstance()->cfg->get("XP Gap");
-		if ($xpGap <= 0) $xpGap = 0.01;
-		$difficulty = SkyBlock::getInstance()->cfg->get("LevelUp Difficulty");
-		if ($difficulty <= 0) $difficulty = 0.01;
+		$xpGap = self::readPositiveConfigNumber("XP Gap");
+		$difficulty = self::readPositiveConfigNumber("LevelUp Difficulty");
 		$currentLevel = $this->calculateLevel($experience);
 		$nextLevel = $currentLevel + 1;
 		$xpNeeded = ceil(($nextLevel / $xpGap) ** $difficulty - $experience);
 		return (int) $xpNeeded;
+	}
+
+	private static function readPositiveConfigNumber(string $key) : float {
+		$value = SkyBlock::getInstance()->cfg->get($key);
+		if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+			return 0.01;
+		}
+		$number = (float) $value;
+		return is_finite($number) && $number > 0 ? $number : 0.01;
 	}
 }
