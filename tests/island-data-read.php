@@ -43,16 +43,18 @@ try {
 	file_put_contents($playersFolder . '/BadSpawn.json', $invalidSpawn);
 	$invalidSize = '{"creator":"BadSize","initialspawnpoint":[1,2,3],"size":{"unexpected":1}}';
 	file_put_contents($playersFolder . '/BadSize.json', $invalidSize);
+	$invalidPermissions = '{"creator":"BadPermissions","initialspawnpoint":[1,2,3],"permissions":{"member":[false]}}';
+	file_put_contents($playersFolder . '/BadPermissions.json', $invalidPermissions);
 	if ($manager->getIslandData('Broken') !== null || $manager->getIslandData('List') !== null || $manager->getIslandData('Missing') !== null) {
 		throw new RuntimeException('Invalid or missing island data was accepted');
 	}
 
 	unlink($playersFolder . '/Alice.json');
 	$manager->constructAllIslands();
-	if ($manager->getIslands() !== [] || file_get_contents($playersFolder . '/NoSpawn.json') !== $invalidIsland || file_get_contents($playersFolder . '/BadSpawn.json') !== $invalidSpawn || file_get_contents($playersFolder . '/BadSize.json') !== $invalidSize) {
+	if ($manager->getIslands() !== [] || file_get_contents($playersFolder . '/NoSpawn.json') !== $invalidIsland || file_get_contents($playersFolder . '/BadSpawn.json') !== $invalidSpawn || file_get_contents($playersFolder . '/BadSize.json') !== $invalidSize || file_get_contents($playersFolder . '/BadPermissions.json') !== $invalidPermissions) {
 		throw new RuntimeException('Invalid island data was constructed or modified on disk');
 	}
-	if (!str_contains(implode("\n", $warnings), 'NoSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSize.json')) {
+	if (!str_contains(implode("\n", $warnings), 'NoSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSize.json') || !str_contains(implode("\n", $warnings), 'BadPermissions.json')) {
 		throw new RuntimeException('Skipping invalid island data was not logged');
 	}
 
@@ -78,7 +80,7 @@ try {
 		throw new RuntimeException('Numeric legacy coordinates were not normalized for the world API');
 	}
 	$island->setSpawnPoint([1, 2, 3]);
-	foreach (['name' => ['unexpected'], 'size' => ['unexpected'], 'experience' => 'not a number'] as $field => $invalidValue) {
+	foreach (['name' => ['unexpected'], 'size' => ['unexpected'], 'experience' => 'not a number', 'members' => ['Bob' => 'unknown'], 'banned' => ['Bob' => 'Bob'], 'settings' => ['pvp' => 'yes'], 'stats' => ['blocks_placed' => 'many'], 'permissions' => ['member' => [false]]] as $field => $invalidValue) {
 		$invalidData = $validIsland;
 		$invalidData[$field] = $invalidValue;
 		try {
@@ -86,6 +88,14 @@ try {
 			throw new RuntimeException("Invalid {$field} was accepted");
 		} catch (UnexpectedValueException) {
 		}
+	}
+	$legacyData = $validIsland;
+	$legacyData['banned'] = [2 => 'Bob'];
+	$legacyData['settings'] = ['custom' => true];
+	$legacyData['permissions'] = ['member' => [2 => 'island.place']];
+	$legacyIsland = new Island($legacyData);
+	if ($legacyIsland->getBanned() !== [2 => 'Bob'] || $legacyIsland->getPermissions()['member'] !== [2 => 'island.place'] || $legacyIsland->getSettings()['custom'] !== true || $legacyIsland->getSettings()['safevoid'] !== true) {
+		throw new RuntimeException('Sparse lists and valid custom settings must survive default merging');
 	}
 	$stored = json_decode(json_encode($manager->deconstructIsland($island), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
 	if (!isset($stored['settings']['safevoid'], $stored['stats']['blocks_broken'], $stored['permissions']['member']) || $stored['creator'] !== 'Alice') {
@@ -102,7 +112,7 @@ try {
 		throw new RuntimeException('Malformed level settings must use finite positive fallbacks');
 	}
 } finally {
-	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'notes.txt'] as $fileName) {
+	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
 		if (is_file($path)) {
 			unlink($path);

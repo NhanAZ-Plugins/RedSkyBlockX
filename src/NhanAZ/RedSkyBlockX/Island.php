@@ -7,10 +7,8 @@ namespace NhanAZ\RedSkyBlockX;
 use pocketmine\player\Player;
 use UnexpectedValueException;
 use function abs;
-use function array_diff;
 use function array_is_list;
 use function array_key_exists;
-use function array_keys;
 use function array_push;
 use function array_search;
 use function ceil;
@@ -46,19 +44,24 @@ class Island {
 	/** @var array{int|float, int|float, int|float} */
 	private array $spawnPoint;
 
-	private $members;
+	/** @var array<string, string> */
+	private array $members;
 
-	private $banned;
+	/** @var array<int, string> */
+	private array $banned;
 
 	private int $resetCooldown;
 
 	private bool $lockStatus;
 
-	private $settings;
+	/** @var array<string, bool> */
+	private array $settings;
 
-	private $stats;
+	/** @var array<string, int> */
+	private array $stats;
 
-	private $permissions;
+	/** @var array<string, array<int, string>> */
+	private array $permissions;
 
 	private int $experience;
 
@@ -109,36 +112,27 @@ class Island {
 		} else {
 			$this->spawnPoint = self::parseCoordinates($spawnPoint) ?? throw new UnexpectedValueException("Island has no valid spawn point");
 		}
-		$this->members = (array) $islandData["members"];
-		$this->banned = (array) $islandData["banned"];
+		$this->members = self::readMembers($islandData["members"] ?? null);
+		$this->banned = self::readBanned($islandData["banned"] ?? null);
 		$this->resetCooldown = self::readInt($islandData["resetcooldown"] ?? null, "resetcooldown");
 		$this->lockStatus = (bool) $islandData["lockstatus"];
-		$this->settings = (array) $islandData["settings"];
-		$this->stats = (array) $islandData["stats"];
-		$this->permissions = (array) $islandData["permissions"];
+		$this->settings = self::readSettings($islandData["settings"] ?? null);
+		$this->stats = self::readStats($islandData["stats"] ?? null);
+		$this->permissions = self::readPermissions($islandData["permissions"] ?? null);
 		$this->experience = self::readInt($islandData["experience"] ?? null, "experience");
-		if (count($this->settings) < count($this->defaultSettings)) {
-			$defaultSettings = array_keys($this->defaultSettings);
-			$savedSettings = array_keys($this->settings);
-			$compare = array_diff($defaultSettings, $savedSettings);
-			foreach ($compare as $setting) {
-				$this->settings[$setting] = $this->defaultSettings[$setting];
+		foreach ($this->defaultSettings as $setting => $default) {
+			if (!array_key_exists($setting, $this->settings)) {
+				$this->settings[$setting] = $default;
 			}
 		}
-		if (count($this->stats) < count($this->defaultStats)) {
-			$defaultStats = array_keys($this->defaultStats);
-			$savedStats = array_keys($this->stats);
-			$compare = array_diff($defaultStats, $savedStats);
-			foreach ($compare as $stat) {
-				$this->stats[$stat] = $this->defaultStats[$stat];
+		foreach ($this->defaultStats as $stat => $default) {
+			if (!array_key_exists($stat, $this->stats)) {
+				$this->stats[$stat] = $default;
 			}
 		}
-		if (count($this->permissions) < count($this->defaultPermissions)) {
-			$defaultPermissions = array_keys($this->defaultPermissions);
-			$savedPermissions = array_keys($this->permissions);
-			$compare = array_diff($defaultPermissions, $savedPermissions);
-			foreach ($compare as $permission) {
-				$this->permissions[$permission] = $this->defaultPermissions[$permission];
+		foreach ($this->defaultPermissions as $rank => $defaults) {
+			if (!array_key_exists($rank, $this->permissions)) {
+				$this->permissions[$rank] = $defaults;
 			}
 		}
 	}
@@ -164,6 +158,102 @@ class Island {
 			throw new UnexpectedValueException("Island has invalid {$field}");
 		}
 		return (int) $value;
+	}
+
+	/** @return array<string, string> */
+	private static function readMembers(mixed $value) : array {
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new UnexpectedValueException("Island has invalid members");
+		}
+		$members = [];
+		foreach ($value as $name => $rank) {
+			if (!is_string($name) || !is_string($rank) || !in_array($rank, self::MEMBER_RANKS, true)) {
+				throw new UnexpectedValueException("Island has invalid members");
+			}
+			$members[$name] = $rank;
+		}
+		return $members;
+	}
+
+	/** @return array<int, string> */
+	private static function readBanned(mixed $value) : array {
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new UnexpectedValueException("Island has invalid banned players");
+		}
+		$banned = [];
+		foreach ($value as $index => $name) {
+			if (!is_int($index) || !is_string($name)) {
+				throw new UnexpectedValueException("Island has invalid banned players");
+			}
+			$banned[$index] = $name;
+		}
+		return $banned;
+	}
+
+	/** @return array<string, bool> */
+	private static function readSettings(mixed $value) : array {
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new UnexpectedValueException("Island has invalid settings");
+		}
+		$settings = [];
+		foreach ($value as $key => $setting) {
+			if (!is_string($key) || !is_bool($setting)) {
+				throw new UnexpectedValueException("Island has invalid settings");
+			}
+			$settings[$key] = $setting;
+		}
+		return $settings;
+	}
+
+	/** @return array<string, int> */
+	private static function readStats(mixed $value) : array {
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new UnexpectedValueException("Island has invalid stats");
+		}
+		$stats = [];
+		foreach ($value as $key => $count) {
+			if (!is_string($key) || !is_int($count)) {
+				throw new UnexpectedValueException("Island has invalid stats");
+			}
+			$stats[$key] = $count;
+		}
+		return $stats;
+	}
+
+	/** @return array<string, array<int, string>> */
+	private static function readPermissions(mixed $value) : array {
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw new UnexpectedValueException("Island has invalid permissions");
+		}
+		$permissions = [];
+		foreach ($value as $rank => $grants) {
+			if (!is_string($rank) || !is_array($grants)) {
+				throw new UnexpectedValueException("Island has invalid permissions");
+			}
+			$permissions[$rank] = [];
+			foreach ($grants as $index => $permission) {
+				if (!is_int($index) || !is_string($permission)) {
+					throw new UnexpectedValueException("Island has invalid permissions");
+				}
+				$permissions[$rank][$index] = $permission;
+			}
+		}
+		return $permissions;
 	}
 
 	/** @return array{int|float, int|float, int|float}|null */
@@ -247,6 +337,7 @@ class Island {
 		$this->spawnPoint = self::parseCoordinates($spawnPoint) ?? throw new UnexpectedValueException("Island has no valid spawn point");
 	}
 
+	/** @return array<string, string> */
 	public function getMembers() : array {
 		return $this->members;
 	}
@@ -273,6 +364,7 @@ class Island {
 		$this->members[$name] = $rank;
 	}
 
+	/** @return array<int, string> */
 	public function getBanned() : array {
 		return $this->banned;
 	}
@@ -344,6 +436,7 @@ class Island {
 		}
 	}
 
+	/** @return array<string, bool> */
 	public function getSettings() : array {
 		return $this->settings;
 	}
@@ -361,6 +454,7 @@ class Island {
 		$this->settings = $this->defaultSettings;
 	}
 
+	/** @return array<string, int> */
 	public function getStats() : array {
 		return $this->stats;
 	}
@@ -393,6 +487,7 @@ class Island {
 		}
 	}
 
+	/** @return array<string, array<int, string>> */
 	public function getPermissions() : array {
 		return $this->permissions;
 	}
