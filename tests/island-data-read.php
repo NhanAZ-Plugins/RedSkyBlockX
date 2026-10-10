@@ -40,16 +40,18 @@ try {
 	file_put_contents($playersFolder . '/NoSpawn.json', $invalidIsland);
 	$invalidSpawn = '{"creator":"BadSpawn","initialspawnpoint":[1,2,3],"spawnpoint":[4,5]}';
 	file_put_contents($playersFolder . '/BadSpawn.json', $invalidSpawn);
+	$invalidSize = '{"creator":"BadSize","initialspawnpoint":[1,2,3],"size":{"unexpected":1}}';
+	file_put_contents($playersFolder . '/BadSize.json', $invalidSize);
 	if ($manager->getIslandData('Broken') !== null || $manager->getIslandData('List') !== null || $manager->getIslandData('Missing') !== null) {
 		throw new RuntimeException('Invalid or missing island data was accepted');
 	}
 
 	unlink($playersFolder . '/Alice.json');
 	$manager->constructAllIslands();
-	if ($manager->getIslands() !== [] || file_get_contents($playersFolder . '/NoSpawn.json') !== $invalidIsland || file_get_contents($playersFolder . '/BadSpawn.json') !== $invalidSpawn) {
+	if ($manager->getIslands() !== [] || file_get_contents($playersFolder . '/NoSpawn.json') !== $invalidIsland || file_get_contents($playersFolder . '/BadSpawn.json') !== $invalidSpawn || file_get_contents($playersFolder . '/BadSize.json') !== $invalidSize) {
 		throw new RuntimeException('Invalid island data was constructed or modified on disk');
 	}
-	if (!str_contains(implode("\n", $warnings), 'NoSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSpawn.json')) {
+	if (!str_contains(implode("\n", $warnings), 'NoSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSize.json')) {
 		throw new RuntimeException('Skipping invalid island data was not logged');
 	}
 
@@ -62,6 +64,15 @@ try {
 	if ($island->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A valid spawn point was rejected');
 	}
+	foreach (['name' => ['unexpected'], 'size' => ['unexpected'], 'experience' => 'not a number'] as $field => $invalidValue) {
+		$invalidData = $validIsland;
+		$invalidData[$field] = $invalidValue;
+		try {
+			new Island($invalidData);
+			throw new RuntimeException("Invalid {$field} was accepted");
+		} catch (UnexpectedValueException) {
+		}
+	}
 	$stored = json_decode(json_encode($manager->deconstructIsland($island), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
 	if (!isset($stored['settings']['safevoid'], $stored['stats']['blocks_broken'], $stored['permissions']['member']) || $stored['creator'] !== 'Alice') {
 		throw new RuntimeException('A newly created island must persist its initialized defaults');
@@ -70,7 +81,7 @@ try {
 		throw new RuntimeException('A stored island must load with its original spawn point');
 	}
 } finally {
-	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'notes.txt'] as $fileName) {
+	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
 		if (is_file($path)) {
 			unlink($path);

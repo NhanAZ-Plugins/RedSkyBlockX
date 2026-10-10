@@ -20,6 +20,7 @@ use function in_array;
 use function is_array;
 use function is_finite;
 use function is_numeric;
+use function is_scalar;
 use function log;
 use function round;
 use function strtolower;
@@ -87,13 +88,13 @@ class Island {
 
 	/** @param array<string, mixed> $islandData */
 	public function __construct(array $islandData) {
-		$this->creator = (string) $islandData["creator"];
-		$this->name = (string) $islandData["name"];
+		$this->creator = self::readString($islandData["creator"] ?? null, "creator");
+		$this->name = self::readString($islandData["name"] ?? null, "name");
 		if ($this->name === "") {
 			$this->name = $this->creator . "'s Island";
 		}
-		$this->size = (int) $islandData["size"];
-		$this->value = (int) $islandData["value"];
+		$this->size = self::readInt($islandData["size"] ?? null, "size");
+		$this->value = self::readInt($islandData["value"] ?? null, "value");
 		$initialSpawnPoint = $islandData["initialspawnpoint"] ?? null;
 		if (!is_array($initialSpawnPoint) || !self::hasFiniteCoordinates($initialSpawnPoint)) {
 			throw new UnexpectedValueException("Island has no valid initial spawn point");
@@ -107,12 +108,12 @@ class Island {
 		}
 		$this->members = (array) $islandData["members"];
 		$this->banned = (array) $islandData["banned"];
-		$this->resetCooldown = (int) $islandData["resetcooldown"];
+		$this->resetCooldown = self::readInt($islandData["resetcooldown"] ?? null, "resetcooldown");
 		$this->lockStatus = (bool) $islandData["lockstatus"];
 		$this->settings = (array) $islandData["settings"];
 		$this->stats = (array) $islandData["stats"];
 		$this->permissions = (array) $islandData["permissions"];
-		$this->experience = (int) $islandData["experience"];
+		$this->experience = self::readInt($islandData["experience"] ?? null, "experience");
 		if (count($this->settings) < count($this->defaultSettings)) {
 			$defaultSettings = array_keys($this->defaultSettings);
 			$savedSettings = array_keys($this->settings);
@@ -139,11 +140,37 @@ class Island {
 		}
 	}
 
+	private static function readString(mixed $value, string $field) : string {
+		if ($value === null) {
+			return "";
+		}
+		if (!is_scalar($value)) {
+			throw new UnexpectedValueException("Island has invalid {$field}");
+		}
+		return (string) $value;
+	}
+
+	private static function readInt(mixed $value, string $field) : int {
+		if ($value === null) {
+			return 0;
+		}
+		if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+			throw new UnexpectedValueException("Island has invalid {$field}");
+		}
+		if (!is_finite((float) $value)) {
+			throw new UnexpectedValueException("Island has invalid {$field}");
+		}
+		return (int) $value;
+	}
+
 	/** @param array<array-key, mixed> $point */
 	private static function hasFiniteCoordinates(array $point) : bool {
 		foreach ([0, 1, 2] as $axis) {
 			$value = $point[$axis] ?? null;
-			if ((!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) || !is_finite((float) $value)) {
+			if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+				return false;
+			}
+			if (!is_finite((float) $value)) {
 				return false;
 			}
 		}
