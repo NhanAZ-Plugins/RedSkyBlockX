@@ -73,6 +73,11 @@ try {
 	if ($island->getSpawnPoint() !== [1, 2, 3]) {
 		throw new RuntimeException('Rejected spawn data changed the saved point');
 	}
+	$island->setSpawnPoint(['1', '2.5', '3']);
+	if ($island->getSpawnPoint() !== [1.0, 2.5, 3.0]) {
+		throw new RuntimeException('Numeric legacy coordinates were not normalized for the world API');
+	}
+	$island->setSpawnPoint([1, 2, 3]);
 	foreach (['name' => ['unexpected'], 'size' => ['unexpected'], 'experience' => 'not a number'] as $field => $invalidValue) {
 		$invalidData = $validIsland;
 		$invalidData[$field] = $invalidValue;

@@ -40,10 +40,10 @@ class Island {
 
 	private int $value;
 
-	/** @var array{int|float|string, int|float|string, int|float|string} */
+	/** @var array{int|float, int|float, int|float} */
 	private array $initialSpawnPoint;
 
-	/** @var array{int|float|string, int|float|string, int|float|string} */
+	/** @var array{int|float, int|float, int|float} */
 	private array $spawnPoint;
 
 	private $members;
@@ -166,7 +166,7 @@ class Island {
 		return (int) $value;
 	}
 
-	/** @return array{int|float|string, int|float|string, int|float|string}|null */
+	/** @return array{int|float, int|float, int|float}|null */
 	private static function parseCoordinates(mixed $point) : ?array {
 		if (!is_array($point) || !array_is_list($point) || count($point) !== 3) {
 			return null;
@@ -180,11 +180,14 @@ class Island {
 		return [$x, $y, $z];
 	}
 
-	private static function parseCoordinate(mixed $value) : int|float|string|null {
+	private static function parseCoordinate(mixed $value) : int|float|null {
 		if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
 			return null;
 		}
-		return is_finite((float) $value) ? $value : null;
+		if (!is_finite((float) $value)) {
+			return null;
+		}
+		return is_string($value) ? (float) $value : $value;
 	}
 
 	public function getCreator() : string {
@@ -223,18 +226,18 @@ class Island {
 		}
 	}
 
-	/** @return array{int|float|string, int|float|string, int|float|string} */
+	/** @return array{int|float, int|float, int|float} */
 	public function getInitialSpawnPoint() : array {
 		return $this->initialSpawnPoint;
 	}
 
-	/** @return array{int|float|string, int|float|string} */
+	/** @return array{int|float, int|float} */
 	public function getIslandCenter() : array { //for readability
 		$center = [$this->initialSpawnPoint[0], $this->initialSpawnPoint[2]];
 		return $center;
 	}
 
-	/** @return array{int|float|string, int|float|string, int|float|string} */
+	/** @return array{int|float, int|float, int|float} */
 	public function getSpawnPoint() : array {
 		return $this->spawnPoint;
 	}
