@@ -56,7 +56,7 @@ class ConfigManager {
 				$real[$key] = $reference[$key];
 			}
 			$updated = yaml_emit($real);
-			if ($updated === false || file_put_contents($path, $updated) === false) {
+			if (file_put_contents($path, $updated) === false) {
 				$this->plugin->getLogger()->warning("Could not save missing SkyBlock configuration defaults");
 				return;
 			}
