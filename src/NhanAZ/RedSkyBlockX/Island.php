@@ -46,9 +46,9 @@ class Island {
 
 	private $banned;
 
-	private $resetCooldown;
+	private int $resetCooldown;
 
-	private $lockStatus;
+	private bool $lockStatus;
 
 	private $settings;
 
@@ -56,29 +56,34 @@ class Island {
 
 	private $permissions;
 
-	private $experience;
+	private int $experience;
 
-	private $defaultSettings = [
+	/** @var array<string, bool> */
+	private array $defaultSettings = [
 		"pvp" => false,
 		"safevoid" => true,
 		"visitor_pickup" => false
 	];
 
-	private $defaultStats = [
+	/** @var array<string, int> */
+	private array $defaultStats = [
 		"blocks_broken" => 0,
 		"blocks_placed" => 0
 	];
 
-	private $defaultPermissions = [
+	/** @var array<string, list<string>> */
+	private array $defaultPermissions = [
 		"member" => ["island.place", "island.break", "island.interact"],
 		"helper" => ["island.place", "island.break", "island.interact", "island.kick"],
 		"moderator" => ["island.place", "island.break", "island.interact", "island.kick", "island.ban", "island.lock"],
 		"admin" => ["island.place", "island.break", "island.interact", "island.kick", "island.ban", "island.lock", "island.spawn", "island.name"]
 	];
 
-	private $invited = [];
+	/** @var array<int, string> */
+	private array $invited = [];
 
-	private $islandChat = [];
+	/** @var array<int, string> */
+	private array $islandChat = [];
 
 	public function __construct(array $islandData) {
 		$this->creator = (string) $islandData["creator"];
@@ -297,6 +302,7 @@ class Island {
 		return $this->settings;
 	}
 
+	/** @return array<string, bool> */
 	public function getDefaultSettings() : array {
 		return $this->defaultSettings;
 	}
@@ -321,6 +327,7 @@ class Island {
 		$this->stats[$stat] -= $amount;
 	}
 
+	/** @return array<int, string> */
 	public function getChatters() : array {
 		return $this->islandChat;
 	}
