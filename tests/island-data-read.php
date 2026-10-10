@@ -137,6 +137,14 @@ try {
 	if ($island->calculateLevel(1) !== 0 || $island->getXPNeeded(1) !== 1) {
 		throw new RuntimeException('Malformed level settings must use finite positive fallbacks');
 	}
+	unlink($savePath);
+	if ($manager->deleteIsland($island) || ($manager->getIslands()['Alice'] ?? null) !== $island) {
+		throw new RuntimeException('Missing island file removed the live island from the registry');
+	}
+	file_put_contents($savePath, $savedBytes);
+	if (!$manager->deleteIsland($island) || is_file($savePath) || isset($manager->getIslands()['Alice'])) {
+		throw new RuntimeException('Successful island deletion left a saved file or registry entry');
+	}
 } finally {
 	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;

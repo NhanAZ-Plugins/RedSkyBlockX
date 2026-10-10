@@ -280,15 +280,14 @@ class IslandManager {
 		$this->islands = [];
 	}
 
-	public function deleteIsland(Island $island) : void {
-		unset($this->islands[$island->getCreator()]);
+	public function deleteIsland(Island $island) : bool {
 		$filePath = $this->plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $island->getCreator() . ".json";
-		if (file_exists($filePath)) {
-			unlink($filePath);
-			unset($island);
-		} else {
-			unset($island);
+		if (!is_file($filePath) || is_link($filePath) || !unlink($filePath)) {
+			$this->plugin->getLogger()->warning("Could not delete saved island for {$island->getCreator()}; island remains available");
+			return false;
 		}
+		unset($this->islands[$island->getCreator()]);
+		return true;
 	}
 
 	public function getMasterWorld() : ?World {

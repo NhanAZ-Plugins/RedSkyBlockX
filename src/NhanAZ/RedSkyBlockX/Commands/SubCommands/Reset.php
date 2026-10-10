@@ -30,11 +30,14 @@ class Reset extends SBSubCommand {
 			$resetCooldown = $island->getResetCooldown();
 			if (Time() >= $resetCooldown) {
 				$playersOnIsland = $this->plugin->islandManager->getPlayersAtIsland($island);
-				$this->plugin->islandManager->deleteIsland($island);
+				if (!$this->plugin->islandManager->deleteIsland($island)) {
+					$sender->sendMessage($this->getMShop()->construct("ISLAND_DELETE_ERROR"));
+					return;
+				}
 				Create::getInstance()->onRun($sender, "create", $args);
 				foreach ($playersOnIsland as $playerName) {
 					$player = $this->plugin->getServer()->getPlayerExact($playerName);
-					if ($player === null) return;
+					if ($player === null) continue;
 					$message = $this->getMShop()->construct("ISLAND_ON_DELETED");
 					$player->sendMessage($message);
 					$spawn = $this->plugin->getServer()->getWorldManager()->getDefaultWorld();
