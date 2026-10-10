@@ -94,6 +94,17 @@ class SkyblockListener implements Listener {
 		return $value;
 	}
 
+	private static function getConfiguredBlockValue(mixed $values, string $blockName) : ?int {
+		if (!is_array($values) || !array_key_exists($blockName, $values)) {
+			return null;
+		}
+		$value = $values[$blockName];
+		if (!is_numeric($value) || !is_finite((float) $value)) {
+			return null;
+		}
+		return (int) $value;
+	}
+
 	public function onJoin(PlayerJoinEvent $event) {
 		$player = $event->getPlayer();
 		ZoneManager::clearZoneTools($player);
@@ -238,8 +249,9 @@ class SkyblockListener implements Listener {
 				}
 				$valuableArray = $plugin->cfg->get("Valuable Blocks", []);
 				$blockName = str_replace(" ", "_", strtolower($block->getName()));
-				if (array_key_exists($blockName, $valuableArray)) {
-					$island->removeValue((int) $valuableArray[$blockName]);
+				$blockValue = self::getConfiguredBlockValue($valuableArray, $blockName);
+				if ($blockValue !== null) {
+					$island->removeValue($blockValue);
 				}
 				$island->addToStat("blocks_broken", 1);
 			} else {
@@ -275,8 +287,9 @@ class SkyblockListener implements Listener {
 					}
 					$valuableArray = $plugin->cfg->get("Valuable Blocks", []);
 					$blockName = str_replace(" ", "_", strtolower($block->getName()));
-					if (array_key_exists($blockName, $valuableArray)) {
-						$island->addValue((int) $valuableArray[$blockName]);
+					$blockValue = self::getConfiguredBlockValue($valuableArray, $blockName);
+					if ($blockValue !== null) {
+						$island->addValue($blockValue);
 					}
 					$island->addToStat("blocks_placed", 1);
 				} else {

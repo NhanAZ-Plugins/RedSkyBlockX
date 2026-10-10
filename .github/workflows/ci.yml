@@ -56,6 +56,9 @@ jobs:
       - name: Test generator ore configuration validation
         run: php tests/generator-ores.php
 
+      - name: Test valuable block configuration validation
+        run: php tests/valuable-blocks.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
