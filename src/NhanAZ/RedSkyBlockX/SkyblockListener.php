@@ -392,7 +392,9 @@ class SkyblockListener implements Listener {
 			$recipients = [];
 			foreach ($channel->getChatters() as $playerName) {
 				$recipient = $this->plugin->getServer()->getPlayerExact($playerName);
-				$recipients[] = $recipient;
+				if ($recipient !== null) {
+					$recipients[] = $recipient;
+				}
 			}
 			$event->setMessage(TextFormat::RED . TextFormat::BOLD . $channel->getName() . TextFormat::RESET . ": " . $message);
 			$event->setRecipients($recipients);
