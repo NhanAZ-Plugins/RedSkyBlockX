@@ -104,6 +104,19 @@ try {
 	if ((new Island($stored))->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A stored island must load with its original spawn point');
 	}
+	$savePath = $playersFolder . '/Alice.json';
+	file_put_contents($savePath, '{"original":true}');
+	$island->setName('Saved safely');
+	$manager->saveIsland($island);
+	$savedBytes = file_get_contents($savePath);
+	if (!is_string($savedBytes) || json_decode($savedBytes, true, 512, JSON_THROW_ON_ERROR)['name'] !== 'Saved safely') {
+		throw new RuntimeException('Existing island was not saved as complete JSON');
+	}
+	$island->setName("\xFF");
+	$manager->saveIsland($island);
+	if (file_get_contents($savePath) !== $savedBytes || !str_contains(implode("\n", $warnings), 'Could not encode island data')) {
+		throw new RuntimeException('Failed encoding changed the original island file or was not logged');
+	}
 	$plugin->cfg = new Config($dataFolder . '/config.yml', Config::YAML, []);
 	SkyBlock::$instance = $plugin;
 	$plugin->cfg->set('XP Gap', ['invalid']);
