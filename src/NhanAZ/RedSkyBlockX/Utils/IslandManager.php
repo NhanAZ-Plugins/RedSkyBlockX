@@ -11,7 +11,7 @@ use pocketmine\player\Player;
 use pocketmine\world\World;
 use function array_key_exists;
 use function array_keys;
-use function array_map;
+use function array_is_list;
 use function array_push;
 use function array_search;
 use function arsort;
@@ -19,11 +19,14 @@ use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
 use function in_array;
+use function is_array;
 use function is_bool;
+use function is_dir;
 use function is_file;
 use function json_decode;
 use function json_encode;
 use function scandir;
+use function str_ends_with;
 use function strtolower;
 use function substr;
 use function unlink;
@@ -41,14 +44,31 @@ class IslandManager {
 		self::$instance = $this;
 	}
 
+	/** @return array<string, mixed>|null */
 	public function getIslandData(string $playerName) : ?array {
-		$playerNameLower = strtolower($playerName);
-		if (in_array($playerNameLower . ".json", array_map('strtolower', scandir($this->plugin->getDataFolder() . "../RedSkyBlockX/Players")), true)) {
-			$islandData = (array) json_decode(file_get_contents($this->plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $playerName . ".json"), true);
-			return $islandData;
-		} else {
+		$directory = $this->plugin->getDataFolder() . "../RedSkyBlockX/Players";
+		$files = is_dir($directory) ? scandir($directory) : false;
+		if ($files === false) {
 			return null;
 		}
+		$target = strtolower($playerName) . ".json";
+		foreach ($files as $fileName) {
+			$path = $directory . "/" . $fileName;
+			if (strtolower($fileName) === $target && is_file($path)) {
+				return self::readIslandDataFile($path);
+			}
+		}
+		return null;
+	}
+
+	/** @return array<string, mixed>|null */
+	private static function readIslandDataFile(string $path) : ?array {
+		$content = file_get_contents($path);
+		if ($content === false) {
+			return null;
+		}
+		$data = json_decode($content, true);
+		return is_array($data) && !array_is_list($data) ? $data : null;
 	}
 
 	public function constructIsland(array $islandData, string $playerName) : Island {
@@ -87,13 +107,22 @@ class IslandManager {
 
 	public function constructAllIslands() : void {
 		$plugin = $this->plugin;
-		$playerFiles = scandir($plugin->getDataFolder() . "../RedSkyBlockX/Players");
+		$directory = $plugin->getDataFolder() . "../RedSkyBlockX/Players";
+		$playerFiles = is_dir($directory) ? scandir($directory) : false;
+		if ($playerFiles === false) {
+			return;
+		}
 		foreach ($playerFiles as $fileName) {
-			$playerName = substr($fileName, 0, -5); // removes the .json from the file name
-			if (is_file($plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $fileName)) {
-				$islandData = (array) json_decode(file_get_contents($plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $fileName));
-				$this->constructIsland($islandData, $playerName);
+			$path = $directory . "/" . $fileName;
+			if (!str_ends_with(strtolower($fileName), ".json") || !is_file($path)) {
+				continue;
 			}
+			$islandData = self::readIslandDataFile($path);
+			if ($islandData === null) {
+				continue;
+			}
+			$playerName = substr($fileName, 0, -5); // removes the .json from the file name
+			$this->constructIsland($islandData, $playerName);
 		}
 	}
 
