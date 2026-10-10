@@ -53,6 +53,9 @@ jobs:
       - name: Test island chat with offline channel members
         run: php tests/island-chat.php
 
+      - name: Test generator ore configuration validation
+        run: php tests/generator-ores.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:

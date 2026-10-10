@@ -50,9 +50,13 @@ class SkyblockListener implements Listener {
 		$plugin = $this->plugin;
 		$block = $event->getBlock();
 		$world = $block->getPosition()->getWorld()->getFolderName();
-		$generatorOres = $plugin->cfg->get("Generator Ores", []);
 		$masterWorld = $plugin->skyblock->get("Master World");
 		if ($world === $masterWorld || $world === $masterWorld . "-Nether") {
+			$generatorOres = self::parseGeneratorOres($plugin->cfg->get("Generator Ores", []));
+			if ($generatorOres === null) {
+				$plugin->getLogger()->warning("Generator Ores must map block names to nonnegative integer chances");
+				return;
+			}
 			if (count($generatorOres) !== 0) {
 				if (array_sum($generatorOres) !== 100) {
 					$message = $plugin->mShop->construct("GEN_FORMAT");
@@ -75,6 +79,19 @@ class SkyblockListener implements Listener {
 				}
 			}
 		}
+	}
+
+	/** @return array<string, int>|null */
+	private static function parseGeneratorOres(mixed $value) : ?array {
+		if (!is_array($value)) {
+			return null;
+		}
+		foreach ($value as $name => $chance) {
+			if (!is_string($name) || $name === "" || !is_int($chance) || $chance < 0) {
+				return null;
+			}
+		}
+		return $value;
 	}
 
 	public function onJoin(PlayerJoinEvent $event) {
