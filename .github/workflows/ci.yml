@@ -41,6 +41,9 @@ jobs:
       - name: Test island name uniqueness across all islands
         run: php tests/island-names.php
 
+      - name: Test message formatting and malformed configuration values
+        run: php tests/message-constructor.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:

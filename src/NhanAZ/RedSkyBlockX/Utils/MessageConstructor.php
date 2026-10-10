@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NhanAZ\RedSkyBlockX\Utils;
 
 use NhanAZ\RedSkyBlockX\SkyBlock;
+use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 use function array_diff;
 use function array_keys;
@@ -22,7 +23,7 @@ class MessageConstructor {
 
 	public SkyBlock $plugin;
 
-	protected $messages;
+	protected Config $messages;
 
 	public function __construct(SkyBlock $plugin) {
 		$this->plugin = $plugin;
@@ -38,7 +39,7 @@ class MessageConstructor {
 	public function construct(string $identifier) : string {
 		$plugin = $this->plugin;
 		$message = $plugin->messages->get($identifier);
-		if ($message == null) return "Message Not Set";
+		if (!is_string($message)) return "Message Not Set";
 		$message = str_replace("{NEW_LINE}", TextFormat::EOL, $message);
 		$message = str_replace("{BLACK}", TextFormat::BLACK, $message);
 		$message = str_replace("{DARK_BLUE}", TextFormat::DARK_BLUE, $message);
