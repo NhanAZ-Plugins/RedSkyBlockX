@@ -20,11 +20,9 @@ use pocketmine\world\Position;
 use function count;
 use function end;
 use function explode;
-use function file_put_contents;
 use function floatval;
 use function floor;
 use function intval;
-use function json_encode;
 use function strval;
 use function Time;
 
@@ -128,12 +126,16 @@ class Create extends SBSubCommand {
 											}
 										}
 									}
-									$island = $plugin->islandManager->constructIsland($islandData, $sender->getName());
 									$masterWorld->setBlock(new Vector3($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1), VanillaBlocks::CHEST());
 									$startingChest = $masterWorld->getTileAt($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1);
 									if (!$startingChest instanceof Tile) return;
 									if (!$startingChest instanceof Chest) return;
 									if (!is_array($startingItems)) return;
+									if ($plugin->islandManager->createIsland($islandData, $sender->getName()) === null) {
+										$message = $this->getMShop()->construct("FILE_CREATION_ERROR");
+										$sender->sendMessage($message);
+										return;
+									}
 									if (count($startingItems) !== 0) {
 										foreach ($startingItems as $itemName => $count) {
 											$item = StringToItem::parse(strval($itemName));
@@ -141,17 +143,10 @@ class Create extends SBSubCommand {
 											$startingChest->getInventory()->addItem($item);
 										}
 									}
-									$senderName = $sender->getName();
 									$doCreateTeleport = $plugin->cfg->get("Create Teleport");
 									if ($doCreateTeleport) $sender->teleport(new Position($initialSpawnPoint[0], $initialSpawnPoint[1], $initialSpawnPoint[2], $masterWorld));
-									$serialized = json_encode($plugin->islandManager->deconstructIsland($island));
-									if ($serialized !== false && file_put_contents($plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $senderName . ".json", $serialized) !== false) {
-										$message = $this->getMShop()->construct("ISLAND_CREATED");
-										$sender->sendMessage($message);
-									} else {
-										$message = $this->getMShop()->construct("FILE_CREATION_ERROR");
-										$sender->sendMessage($message);
-									}
+									$message = $this->getMShop()->construct("ISLAND_CREATED");
+									$sender->sendMessage($message);
 								}, static function (): void {
 								});
 							} else {

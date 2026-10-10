@@ -105,7 +105,15 @@ try {
 		throw new RuntimeException('A stored island must load with its original spawn point');
 	}
 	$savePath = $playersFolder . '/Alice.json';
-	file_put_contents($savePath, '{"original":true}');
+	$createdIsland = $manager->createIsland($validIsland, 'Alice');
+	if (!$createdIsland instanceof Island || ($manager->getIslands()['Alice'] ?? null) !== $createdIsland) {
+		throw new RuntimeException('A new island was not persisted');
+	}
+	$island = $createdIsland;
+	$createdBytes = file_get_contents($savePath);
+	if (!is_string($createdBytes) || json_decode($createdBytes, true, 512, JSON_THROW_ON_ERROR)['creator'] !== 'Alice' || $manager->createIsland($validIsland, 'Alice') !== null || file_get_contents($savePath) !== $createdBytes) {
+		throw new RuntimeException('Creating an island did not protect an existing file');
+	}
 	$island->setName('Saved safely');
 	$manager->saveIsland($island);
 	$savedBytes = file_get_contents($savePath);
@@ -116,6 +124,11 @@ try {
 	$manager->saveIsland($island);
 	if (file_get_contents($savePath) !== $savedBytes || !str_contains(implode("\n", $warnings), 'Could not encode island data')) {
 		throw new RuntimeException('Failed encoding changed the original island file or was not logged');
+	}
+	$bobData = $manager->verifyIslandDataIntegrity($validIsland, 'Bob');
+	$bobData['name'] = "\xFF";
+	if ($manager->createIsland($bobData, 'Bob') !== null || is_file($playersFolder . '/Bob.json') || isset($manager->getIslands()['Bob'])) {
+		throw new RuntimeException('Failed encoding created a partial new island');
 	}
 	$plugin->cfg = new Config($dataFolder . '/config.yml', Config::YAML, []);
 	SkyBlock::$instance = $plugin;

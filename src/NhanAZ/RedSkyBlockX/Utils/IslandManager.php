@@ -89,6 +89,21 @@ class IslandManager {
 		return $island;
 	}
 
+	/** @param array<string, mixed> $islandData */
+	public function createIsland(array $islandData, string $playerName) : ?Island {
+		try {
+			$island = new Island($this->verifyIslandDataIntegrity($islandData, $playerName));
+		} catch (UnexpectedValueException $error) {
+			$this->plugin->getLogger()->warning("Could not create island for {$playerName}: {$error->getMessage()}");
+			return null;
+		}
+		if (!$this->createIslandFile($island)) {
+			return null;
+		}
+		$this->addIsland($island);
+		return $island;
+	}
+
 	/** @param array<string, mixed> $islandData
 	 * @return array<string, mixed>
 	 */
@@ -169,24 +184,39 @@ class IslandManager {
 		if (!is_file($path) || is_link($path)) {
 			return;
 		}
+		$this->writeIslandFile($island, $path, false);
+	}
+
+	private function createIslandFile(Island $island) : bool {
+		$path = $this->plugin->getDataFolder() . "../RedSkyBlockX/Players/" . $island->getCreator() . ".json";
+		if (file_exists($path) || is_link($path)) {
+			return false;
+		}
+		return $this->writeIslandFile($island, $path, true);
+	}
+
+	private function writeIslandFile(Island $island, string $path, bool $create) : bool {
 		try {
 			$encoded = json_encode($this->deconstructIsland($island), JSON_THROW_ON_ERROR);
 		} catch (JsonException $error) {
 			$this->plugin->getLogger()->warning("Could not encode island data for {$island->getCreator()}: {$error->getMessage()}");
-			return;
+			return false;
 		}
 		$directory = dirname($path);
 		$temporaryPath = tempnam($directory, ".island-");
 		if ($temporaryPath === false) {
 			$this->plugin->getLogger()->warning("Could not prepare island save for {$island->getCreator()}");
-			return;
+			return false;
 		}
 		try {
 			if (realpath(dirname($temporaryPath)) !== realpath($directory)
 				|| file_put_contents($temporaryPath, $encoded, LOCK_EX) !== strlen($encoded)
+				|| ($create && (file_exists($path) || is_link($path)))
 				|| !rename($temporaryPath, $path)) {
 				$this->plugin->getLogger()->warning("Could not save island data for {$island->getCreator()}; original file was preserved");
+				return false;
 			}
+			return true;
 		} finally {
 			if (is_file($temporaryPath)) {
 				unlink($temporaryPath);
