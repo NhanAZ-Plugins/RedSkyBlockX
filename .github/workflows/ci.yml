@@ -44,6 +44,9 @@ jobs:
       - name: Test island file loading and malformed JSON handling
         run: php tests/island-data-read.php
 
+      - name: Test master world loading and missing-world behavior
+        run: php tests/master-world.php
+
       - name: Test message formatting and malformed configuration values
         run: php tests/message-constructor.php
 

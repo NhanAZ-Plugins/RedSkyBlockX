@@ -20,9 +20,9 @@ use function file_get_contents;
 use function file_put_contents;
 use function in_array;
 use function is_array;
-use function is_bool;
 use function is_dir;
 use function is_file;
+use function is_string;
 use function json_decode;
 use function json_encode;
 use function scandir;
@@ -219,23 +219,20 @@ class IslandManager {
 		}
 	}
 
-	public function getMasterWorld() : ?world {
+	public function getMasterWorld() : ?World {
 		$masterWorldName = $this->plugin->skyblock->get("Master World");
-		if (is_bool($masterWorldName)) return null;
-		$masterWorld = $this->plugin->getServer()->getWorldManager()->getWorldByName($masterWorldName);
-		if ($masterWorld instanceof World) {
-			if ($masterWorld->isLoaded()) {
-				return $masterWorld;
-			} else {
-				if ($this->plugin->getServer()->getWorldManager()->loadWorld($masterWorldName)) {
-					return $masterWorld;
-				} else {
-					return null;
-				}
-			}
-		} else {
+		if (!is_string($masterWorldName) || $masterWorldName === "") {
 			return null;
 		}
+		$worldManager = $this->plugin->getServer()->getWorldManager();
+		$masterWorld = $worldManager->getWorldByName($masterWorldName);
+		if ($masterWorld instanceof World) {
+			return $masterWorld;
+		}
+		if (!$worldManager->loadWorld($masterWorldName)) {
+			return null;
+		}
+		return $worldManager->getWorldByName($masterWorldName);
 	}
 
 	public function isOnIsland(Player $player, Island $island) : bool {
@@ -301,6 +298,10 @@ class IslandManager {
 	}
 
 	public function getPlayersAtIsland(Island $island) : array {
+		$masterWorld = $this->getMasterWorld();
+		if ($masterWorld === null) {
+			return [];
+		}
 		$onlinePlayers = $this->plugin->getServer()->getOnlinePlayers();
 		$playersOnIsland = [];
 		$islandSize = $island->getSize();
@@ -308,7 +309,6 @@ class IslandManager {
 		$islandCenter = $island->getIslandCenter();
 		$centerX = $islandCenter[0];
 		$centerZ = $islandCenter[1];
-		$masterWorld = $this->getMasterWorld();
 		foreach ($onlinePlayers as $player) {
 			$playerX = $player->getPosition()->x;
 			$playerZ = $player->getPosition()->z;
