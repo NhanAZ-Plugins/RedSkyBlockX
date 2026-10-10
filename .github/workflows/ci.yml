@@ -47,6 +47,9 @@ jobs:
       - name: Test master world loading and missing-world behavior
         run: php tests/master-world.php
 
+      - name: Test island creation after loading the master world
+        run: php tests/create-world-load.php
+
       - name: Test message formatting and malformed configuration values
         run: php tests/message-constructor.php
 
