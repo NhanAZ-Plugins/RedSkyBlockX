@@ -52,8 +52,10 @@ jobs:
         uses: shivammathur/setup-php@c5fc0d8281aba02c7fda07d3a70cc5371548067d # 2.25.2
         with:
           php-version: "8.2"
+      - name: Install Composer dependencies for PHAR build
+        run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
       - name: Build plugin PHAR with Pharynx
-        uses: SOF3/pharynx@v0.1
+        uses: SOF3/pharynx@6926183c038643556b2cb2609e01fd18004794fe # v0.1 branch revision
         id: pharynx
         with:
           pharynx-version: "0.3.0"
