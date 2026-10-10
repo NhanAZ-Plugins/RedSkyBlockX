@@ -36,9 +36,10 @@ class IslandManager {
 
 	private SkyBlock $plugin;
 
-	private $islands = [];
+	/** @var array<string, Island> */
+	private array $islands = [];
 
-	public static $instance;
+	public static ?self $instance = null;
 
 	public function __construct(SkyBlock $plugin) {
 		$this->plugin = $plugin;
@@ -164,6 +165,7 @@ class IslandManager {
 		}
 	}
 
+	/** @return array<string, Island> */
 	public function getIslands() : array {
 		return $this->islands;
 	}
@@ -363,6 +365,7 @@ class IslandManager {
 		return false;
 	}
 
+	/** @return list<Island> */
 	public function getIslandsEmployedAt(string $playerName) : array {
 		$employedAt = [];
 		foreach ($this->islands as $owner => $island) {

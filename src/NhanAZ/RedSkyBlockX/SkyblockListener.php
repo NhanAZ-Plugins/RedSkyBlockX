@@ -105,12 +105,12 @@ class SkyblockListener implements Listener {
 		return (int) $value;
 	}
 
-	public function onJoin(PlayerJoinEvent $event) {
+	public function onJoin(PlayerJoinEvent $event) : void {
 		$player = $event->getPlayer();
 		ZoneManager::clearZoneTools($player);
 	}
 
-	public function onQuit(PlayerQuitEvent $event) {
+	public function onQuit(PlayerQuitEvent $event) : void {
 		$player = $event->getPlayer();
 		$zoneShovel = ZoneManager::getZoneShovel();
 		$spawnFeather = ZoneManager::getSpawnFeather();
@@ -129,7 +129,7 @@ class SkyblockListener implements Listener {
 		}
 	}
 
-	public function onInteract(PlayerInteractEvent $event) {
+	public function onInteract(PlayerInteractEvent $event) : void {
 		$plugin = $this->plugin;
 		$player = $event->getPlayer();
 		$block = $event->getBlock();
