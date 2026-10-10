@@ -38,6 +38,9 @@ jobs:
       - name: Test zone tool drop and cleanup behavior
         run: php tests/zone-tools.php
 
+      - name: Test island name uniqueness across all islands
+        run: php tests/island-names.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:

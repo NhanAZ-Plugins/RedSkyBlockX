@@ -321,17 +321,12 @@ class IslandManager {
 
 	public function checkRepeatIslandName(string $name) : ?bool {
 		$name = strtolower($name);
-		$bias = null;
 		foreach ($this->islands as $island) {
 			if ($name === strtolower($island->getName())) {
-				$bias = true;
-				break;
-			} else {
-				$bias = false;
-				break;
+				return true;
 			}
 		}
-		return $bias;
+		return false;
 	}
 
 	public function getIslandsEmployedAt(string $playerName) : array {
