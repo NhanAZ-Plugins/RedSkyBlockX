@@ -1,4 +1,4 @@
-name: CI
+name: Analyze PHP code and build plugin
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   phpstan:
-    name: PHPStan Analysis
+    name: Analyze PHP code with PHPStan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup PHP
+      - name: Set up PHP environment
         uses: shivammathur/setup-php@2.25.2
         with:
           php-version: ${{ matrix.php }}
@@ -33,25 +33,29 @@ jobs:
       - name: Install PHPStan Composer dependencies
         run: composer install --prefer-dist --no-interaction --ignore-platform-reqs
 
-      - name: Run PHPStan
+      - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
-    name: Build Phar
+    name: Build plugin PHAR
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: shivammathur/setup-php@v2
+      - name: Set up PHP environment
+        uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
-      - uses: SOF3/pharynx@v0.1
+      - name: Build plugin PHAR with Pharynx
+        uses: SOF3/pharynx@v0.1
         id: pharynx
         with:
           pharynx-version: "0.3.0"
-      - uses: actions/upload-artifact@v3
+      - name: Upload plugin PHAR
+        uses: actions/upload-artifact@v3
         with:
           name: RedSkyBlockX.phar
           path: ${{steps.pharynx.outputs.output-phar}}
-      - uses: actions/upload-artifact@v3
+      - name: Upload expanded build output
+        uses: actions/upload-artifact@v3
         with:
           name: RedSkyBlockX
           path: ${{steps.pharynx.outputs.output-dir}}
