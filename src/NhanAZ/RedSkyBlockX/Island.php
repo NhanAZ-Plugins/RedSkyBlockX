@@ -8,6 +8,7 @@ use pocketmine\player\Player;
 use UnexpectedValueException;
 use function abs;
 use function array_diff;
+use function array_is_list;
 use function array_key_exists;
 use function array_keys;
 use function array_push;
@@ -39,9 +40,11 @@ class Island {
 
 	private int $value;
 
-	private $initialSpawnPoint;
+	/** @var array{int|float|string, int|float|string, int|float|string} */
+	private array $initialSpawnPoint;
 
-	private $spawnPoint;
+	/** @var array{int|float|string, int|float|string, int|float|string} */
+	private array $spawnPoint;
 
 	private $members;
 
@@ -95,16 +98,16 @@ class Island {
 		}
 		$this->size = self::readInt($islandData["size"] ?? null, "size");
 		$this->value = self::readInt($islandData["value"] ?? null, "value");
-		$initialSpawnPoint = $islandData["initialspawnpoint"] ?? null;
-		if (!is_array($initialSpawnPoint) || !self::hasFiniteCoordinates($initialSpawnPoint)) {
+		$initialSpawnPoint = self::parseCoordinates($islandData["initialspawnpoint"] ?? null);
+		if ($initialSpawnPoint === null) {
 			throw new UnexpectedValueException("Island has no valid initial spawn point");
 		}
 		$this->initialSpawnPoint = $initialSpawnPoint;
-		$this->spawnPoint = (array) ($islandData["spawnpoint"] ?? null);
-		if ($this->spawnPoint === []) {
+		$spawnPoint = $islandData["spawnpoint"] ?? null;
+		if ($spawnPoint === null || $spawnPoint === []) {
 			$this->spawnPoint = $this->initialSpawnPoint;
-		} elseif (!self::hasFiniteCoordinates($this->spawnPoint)) {
-			throw new UnexpectedValueException("Island has no valid spawn point");
+		} else {
+			$this->spawnPoint = self::parseCoordinates($spawnPoint) ?? throw new UnexpectedValueException("Island has no valid spawn point");
 		}
 		$this->members = (array) $islandData["members"];
 		$this->banned = (array) $islandData["banned"];
@@ -163,18 +166,25 @@ class Island {
 		return (int) $value;
 	}
 
-	/** @param array<array-key, mixed> $point */
-	private static function hasFiniteCoordinates(array $point) : bool {
-		foreach ([0, 1, 2] as $axis) {
-			$value = $point[$axis] ?? null;
-			if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
-				return false;
-			}
-			if (!is_finite((float) $value)) {
-				return false;
-			}
+	/** @return array{int|float|string, int|float|string, int|float|string}|null */
+	private static function parseCoordinates(mixed $point) : ?array {
+		if (!is_array($point) || !array_is_list($point) || count($point) !== 3) {
+			return null;
 		}
-		return true;
+		$x = self::parseCoordinate($point[0]);
+		$y = self::parseCoordinate($point[1]);
+		$z = self::parseCoordinate($point[2]);
+		if ($x === null || $y === null || $z === null) {
+			return null;
+		}
+		return [$x, $y, $z];
+	}
+
+	private static function parseCoordinate(mixed $value) : int|float|string|null {
+		if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+			return null;
+		}
+		return is_finite((float) $value) ? $value : null;
 	}
 
 	public function getCreator() : string {
@@ -213,21 +223,25 @@ class Island {
 		}
 	}
 
+	/** @return array{int|float|string, int|float|string, int|float|string} */
 	public function getInitialSpawnPoint() : array {
 		return $this->initialSpawnPoint;
 	}
 
+	/** @return array{int|float|string, int|float|string} */
 	public function getIslandCenter() : array { //for readability
 		$center = [$this->initialSpawnPoint[0], $this->initialSpawnPoint[2]];
 		return $center;
 	}
 
+	/** @return array{int|float|string, int|float|string, int|float|string} */
 	public function getSpawnPoint() : array {
 		return $this->spawnPoint;
 	}
 
+	/** @param array<array-key, mixed> $spawnPoint */
 	public function setSpawnPoint(array $spawnPoint) : void {
-		$this->spawnPoint = $spawnPoint;
+		$this->spawnPoint = self::parseCoordinates($spawnPoint) ?? throw new UnexpectedValueException("Island has no valid spawn point");
 	}
 
 	public function getMembers() : array {

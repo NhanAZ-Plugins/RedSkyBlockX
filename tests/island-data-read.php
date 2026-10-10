@@ -65,6 +65,14 @@ try {
 	if ($island->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A valid spawn point was rejected');
 	}
+	try {
+		$island->setSpawnPoint([1, 2, 3, 4]);
+		throw new RuntimeException('An oversized spawn point was accepted');
+	} catch (UnexpectedValueException) {
+	}
+	if ($island->getSpawnPoint() !== [1, 2, 3]) {
+		throw new RuntimeException('Rejected spawn data changed the saved point');
+	}
 	foreach (['name' => ['unexpected'], 'size' => ['unexpected'], 'experience' => 'not a number'] as $field => $invalidValue) {
 		$invalidData = $validIsland;
 		$invalidData[$field] = $invalidValue;
