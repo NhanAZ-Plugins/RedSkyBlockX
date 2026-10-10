@@ -12,7 +12,6 @@ use function array_slice;
 use function array_unique;
 use function ceil;
 use function count;
-use function explode;
 use function implode;
 use function in_array;
 use function intval;
@@ -46,9 +45,9 @@ class Help extends SBSubCommand {
 				$command = $subCommands[$commandName];
 				$commandDescription = $command->getDescription();
 				$commandUsage = $command->getUsageMessage();
-				$commandPermissions = $command->getPermission();
-				if ($commandPermissions === null) return;
-				$commandPermissions = implode(" or ", explode(";", $commandPermissions));
+				$commandPermissions = $command->getPermissions();
+				if ($commandPermissions === []) return;
+				$commandPermissions = implode(" or ", $commandPermissions);
 				$commandAliases = $command->getAliases();
 				if (count($commandAliases) !== 0) {
 					$commandAliases = implode(", ", $commandAliases);
