@@ -46,7 +46,7 @@ class ConfigManager {
 		}
 		$real = yaml_parse($content);
 		$reference = yaml_parse($referenceContent);
-		if (!is_array($real) || array_is_list($real) || !is_array($reference) || array_is_list($reference)) {
+		if (!is_array($real) || ($real !== [] && array_is_list($real)) || !is_array($reference) || ($reference !== [] && array_is_list($reference))) {
 			$this->plugin->getLogger()->warning("SkyBlock configuration must be a YAML mapping; original file was preserved");
 			return;
 		}

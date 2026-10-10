@@ -31,6 +31,11 @@ try {
 	if ($plugin->cfg->get('one') !== 9 || $plugin->cfg->get('two') !== 2) {
 		throw new RuntimeException('Missing defaults must be added without replacing user settings');
 	}
+	file_put_contents($path, "{}\n");
+	$manager->verifyConfig();
+	if ($plugin->cfg->get('one') !== 1 || $plugin->cfg->get('two') !== 2) {
+		throw new RuntimeException('An empty configuration mapping must receive bundled defaults');
+	}
 
 	$invalid = "- not\n- a mapping\n";
 	file_put_contents($path, $invalid);

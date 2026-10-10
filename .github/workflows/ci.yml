@@ -62,6 +62,9 @@ jobs:
       - name: Test configuration merge and invalid file preservation
         run: php tests/config-manager.php
 
+      - name: Test message defaults and custom text preservation
+        run: php tests/message-update.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
