@@ -18,9 +18,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up PHP environment
-        uses: shivammathur/setup-php@c5fc0d8281aba02c7fda07d3a70cc5371548067d # 2.25.2
+        uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
           php-version: ${{ matrix.php }}
+          install-path: ./.php-bin
+          pm-version-major: "5"
 
       - name: Restore Composer package cache
         id: composer-cache
