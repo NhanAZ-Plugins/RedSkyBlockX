@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use NhanAZ\RedSkyBlockX\Island;
 use NhanAZ\RedSkyBlockX\SkyBlock;
 use NhanAZ\RedSkyBlockX\Utils\IslandManager;
 use pocketmine\plugin\PluginBase;
+use pocketmine\plugin\PluginLogger;
 
 $base = sys_get_temp_dir() . '/redsky-island-read-' . bin2hex(random_bytes(6));
 $dataFolder = $base . '/RedSkyBlockX';
@@ -18,6 +20,12 @@ if (!mkdir($playersFolder, 0700, true)) {
 try {
 	$plugin = (new ReflectionClass(SkyBlock::class))->newInstanceWithoutConstructor();
 	(new ReflectionProperty(PluginBase::class, 'dataFolder'))->setValue($plugin, $dataFolder . '/');
+	$logger = new PluginLogger(new SimpleLogger(), 'Island fixture');
+	$warnings = [];
+	$logger->addAttachment(static function(mixed $level, string $message) use (&$warnings) : void {
+		$warnings[] = $message;
+	});
+	(new ReflectionProperty(PluginBase::class, 'logger'))->setValue($plugin, $logger);
 	$manager = new IslandManager($plugin);
 
 	file_put_contents($playersFolder . '/Alice.json', '{"creator":"Alice","name":"First Island"}');
@@ -28,17 +36,33 @@ try {
 	file_put_contents($playersFolder . '/Broken.json', '{invalid');
 	file_put_contents($playersFolder . '/List.json', '[]');
 	file_put_contents($playersFolder . '/notes.txt', 'not an island');
+	$invalidIsland = '{"creator":"NoSpawn","initialspawnpoint":[1,2]}';
+	file_put_contents($playersFolder . '/NoSpawn.json', $invalidIsland);
+	$invalidSpawn = '{"creator":"BadSpawn","initialspawnpoint":[1,2,3],"spawnpoint":[4,5]}';
+	file_put_contents($playersFolder . '/BadSpawn.json', $invalidSpawn);
 	if ($manager->getIslandData('Broken') !== null || $manager->getIslandData('List') !== null || $manager->getIslandData('Missing') !== null) {
 		throw new RuntimeException('Invalid or missing island data was accepted');
 	}
 
 	unlink($playersFolder . '/Alice.json');
 	$manager->constructAllIslands();
-	if ($manager->getIslands() !== []) {
-		throw new RuntimeException('Invalid island files were constructed');
+	if ($manager->getIslands() !== [] || file_get_contents($playersFolder . '/NoSpawn.json') !== $invalidIsland || file_get_contents($playersFolder . '/BadSpawn.json') !== $invalidSpawn) {
+		throw new RuntimeException('Invalid island data was constructed or modified on disk');
+	}
+	if (!str_contains(implode("\n", $warnings), 'NoSpawn.json') || !str_contains(implode("\n", $warnings), 'BadSpawn.json')) {
+		throw new RuntimeException('Skipping invalid island data was not logged');
+	}
+
+	$validIsland = $manager->verifyIslandDataIntegrity([
+		'name' => 'Valid',
+		'initialspawnpoint' => [1, 2, 3],
+		'spawnpoint' => [1, 2, 3]
+	], 'Alice');
+	if ((new Island($validIsland))->getIslandCenter() !== [1, 3]) {
+		throw new RuntimeException('A valid spawn point was rejected');
 	}
 } finally {
-	foreach (['Alice.json', 'Broken.json', 'List.json', 'notes.txt'] as $fileName) {
+	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
 		if (is_file($path)) {
 			unlink($path);
@@ -49,4 +73,4 @@ try {
 	rmdir($base);
 }
 
-echo "PASS: island files preserve case-insensitive lookup and reject invalid JSON\n";
+echo "PASS: island files preserve lookup and reject invalid data without deletion\n";

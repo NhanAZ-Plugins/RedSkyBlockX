@@ -9,6 +9,7 @@ use NhanAZ\RedSkyBlockX\SkyBlock;
 use pocketmine\block\Block;
 use pocketmine\player\Player;
 use pocketmine\world\World;
+use UnexpectedValueException;
 use function array_key_exists;
 use function array_keys;
 use function array_is_list;
@@ -122,7 +123,11 @@ class IslandManager {
 				continue;
 			}
 			$playerName = substr($fileName, 0, -5); // removes the .json from the file name
-			$this->constructIsland($islandData, $playerName);
+			try {
+				$this->constructIsland($islandData, $playerName);
+			} catch (UnexpectedValueException $e) {
+				$plugin->getLogger()->warning("Skipped invalid island data in {$fileName}: {$e->getMessage()}");
+			}
 		}
 	}
 

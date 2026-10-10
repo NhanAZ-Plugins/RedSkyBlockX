@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NhanAZ\RedSkyBlockX;
 
-use NhanAZ\RedSkyBlockX\Utils\IslandManager;
 use pocketmine\player\Player;
+use UnexpectedValueException;
 use function abs;
 use function array_diff;
 use function array_key_exists;
@@ -17,6 +17,9 @@ use function count;
 use function exp;
 use function floor;
 use function in_array;
+use function is_array;
+use function is_finite;
+use function is_numeric;
 use function log;
 use function round;
 use function strtolower;
@@ -85,13 +88,16 @@ class Island {
 		}
 		$this->size = (int) $islandData["size"];
 		$this->value = (int) $islandData["value"];
-		$this->initialSpawnPoint = (array) $islandData["initialspawnpoint"];
-		if ($this->initialSpawnPoint === []) {
-			IslandManager::getInstance()->deleteIsland($this);
+		$initialSpawnPoint = $islandData["initialspawnpoint"] ?? null;
+		if (!is_array($initialSpawnPoint) || !self::hasFiniteCoordinates($initialSpawnPoint)) {
+			throw new UnexpectedValueException("Island has no valid initial spawn point");
 		}
-		$this->spawnPoint = (array) $islandData["spawnpoint"];
+		$this->initialSpawnPoint = $initialSpawnPoint;
+		$this->spawnPoint = (array) ($islandData["spawnpoint"] ?? null);
 		if ($this->spawnPoint === []) {
 			$this->spawnPoint = $this->initialSpawnPoint;
+		} elseif (!self::hasFiniteCoordinates($this->spawnPoint)) {
+			throw new UnexpectedValueException("Island has no valid spawn point");
 		}
 		$this->members = (array) $islandData["members"];
 		$this->banned = (array) $islandData["banned"];
@@ -125,6 +131,16 @@ class Island {
 				$this->permissions[$permission] = $this->defaultPermissions[$permission];
 			}
 		}
+	}
+
+	/** @param array<array-key, mixed> $point */
+	private static function hasFiniteCoordinates(array $point) : bool {
+		foreach ([0, 1, 2] as $axis) {
+			if (!isset($point[$axis]) || !is_numeric($point[$axis]) || !is_finite((float) $point[$axis])) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public function getCreator() : string {
