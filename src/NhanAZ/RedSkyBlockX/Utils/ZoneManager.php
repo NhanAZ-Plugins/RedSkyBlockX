@@ -11,7 +11,13 @@ use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use pocketmine\world\World;
+use function array_is_list;
 use function array_push;
+use function count;
+use function is_finite;
+use function is_float;
+use function is_int;
+use function is_string;
 use function max;
 use function min;
 use function round;
@@ -22,8 +28,8 @@ class ZoneManager {
 
 	private static SkyBlock $plugin;
 
-	/** @var array<string> $zone */
-	private static array $zone;
+	/** @var list<string> */
+	private static array $zone = [];
 
 	private static Item $zoneShovel;
 
@@ -31,8 +37,7 @@ class ZoneManager {
 
 	private static ?Player $zoneKeeper = null;
 
-	/** @var mixed $zoneWorld */
-	private static $zoneWorld;
+	private static ?World $zoneWorld = null;
 
 	private static ?Position $pos1 = null;
 
@@ -40,30 +45,33 @@ class ZoneManager {
 
 	private static ?Position $spawnPosition = null;
 
-	/** @var array<int> $zoneSpawn */
-	private static $zoneSpawn;
+	/** @var array<int, int|float> */
+	private static array $zoneSpawn = [];
 
-	/** @var array<int> $zoneSize */
-	private static $zoneSize;
+	/** @var array<int, int|float> */
+	private static array $zoneSize = [];
 
-	/** @var array<int> $zoneStartPosition */
-	private static $zoneStartPosition;
+	/** @var array<int, int|float> */
+	private static array $zoneStartPosition = [];
 
 	public function __construct(SkyBlock $plugin) {
 		self::$plugin = $plugin;
-		self::$zone = $plugin->skyblock->get("Zone", []);
-		self::$zoneStartPosition = $plugin->skyblock->get("Zone Position", []);
-		self::$zoneSize = $plugin->skyblock->get("Zone Size", []);
-		self::$zoneSpawn = $plugin->skyblock->get("Zone Spawn", []);
-		$zoneWorld = $plugin->skyblock->get("Zone World");
-		if ($zoneWorld === false) {
-			self::$zoneWorld = null;
-		} else {
-			if ($plugin->getServer()->getWorldManager()->loadWorld($zoneWorld)) {
-				self::$zoneWorld = $plugin->getServer()->getWorldManager()->getWorldByName($zoneWorld);
+		self::$zone = self::readZone($plugin->skyblock->get("Zone", []));
+		self::$zoneStartPosition = self::readCoordinates($plugin->skyblock->get("Zone Position", []));
+		self::$zoneSize = self::readCoordinates($plugin->skyblock->get("Zone Size", []));
+		self::$zoneSpawn = self::readCoordinates($plugin->skyblock->get("Zone Spawn", []));
+		self::$zoneWorld = null;
+		$zoneWorldName = $plugin->skyblock->get("Zone World");
+		if (is_string($zoneWorldName) && $zoneWorldName !== "") {
+			$worldManager = $plugin->getServer()->getWorldManager();
+			$world = $worldManager->getWorldByName($zoneWorldName);
+			if ($world === null && $worldManager->loadWorld($zoneWorldName)) {
+				$world = $worldManager->getWorldByName($zoneWorldName);
+			}
+			if ($world instanceof World) {
+				self::$zoneWorld = $world;
 			} else {
-				self::$zoneWorld = false;
-				$plugin->skyblock->set("Zone World", self::$zoneWorld);
+				$plugin->getLogger()->warning("Zone world {$zoneWorldName} is unavailable; its configured name was preserved");
 			}
 		}
 		self::$zoneShovel = VanillaItems::WOODEN_SHOVEL();
@@ -72,6 +80,24 @@ class ZoneManager {
 		self::$spawnFeather = VanillaItems::FEATHER();
 		self::$spawnFeather->getNamedTag()->setByte("redskyblockx", 1);
 		self::$spawnFeather->setCustomName(TextFormat::OBFUSCATED . "s" . TextFormat::RESET . TextFormat::WHITE . " Spawn Feather " . TextFormat::RESET . TextFormat::OBFUSCATED . TextFormat::WHITE . "s");
+	}
+
+	/** @return list<string> */
+	private static function readZone(mixed $value) : array {
+		if (!is_array($value) || !array_is_list($value)) return [];
+		foreach ($value as $blockName) {
+			if (!is_string($blockName)) return [];
+		}
+		return $value;
+	}
+
+	/** @return array<int, int|float> */
+	private static function readCoordinates(mixed $value) : array {
+		if (!is_array($value) || !array_is_list($value) || count($value) !== 3) return [];
+		foreach ($value as $coordinate) {
+			if ((!is_int($coordinate) && !is_float($coordinate)) || !is_finite((float) $coordinate)) return [];
+		}
+		return $value;
 	}
 
 	public static function createZone() : void {
@@ -116,6 +142,7 @@ class ZoneManager {
 		self::saveZone();
 	}
 
+	/** @return list<string> */
 	public static function getZone() : array {
 		return self::$zone;
 	}
@@ -163,7 +190,7 @@ class ZoneManager {
 		return self::$zoneWorld;
 	}
 
-	public static function setZoneWorld($world = null) : void {
+	public static function setZoneWorld(?World $world = null) : void {
 		self::$zoneWorld = $world;
 	}
 
@@ -175,11 +202,11 @@ class ZoneManager {
 		return self::$pos2;
 	}
 
-	public static function setFirstPosition($position = null) : void {
+	public static function setFirstPosition(?Position $position = null) : void {
 		self::$pos1 = $position;
 	}
 
-	public static function setSecondPosition($position = null) : void {
+	public static function setSecondPosition(?Position $position = null) : void {
 		self::$pos2 = $position;
 	}
 
@@ -195,14 +222,16 @@ class ZoneManager {
 		return self::$spawnPosition;
 	}
 
-	public static function setSpawnPosition($position = null) : void {
+	public static function setSpawnPosition(?Position $position = null) : void {
 		self::$spawnPosition = $position;
 	}
 
+	/** @return array<int, int|float> */
 	public static function getZoneStartPosition() : array {
 		return self::$zoneStartPosition;
 	}
 
+	/** @return array<int, int|float> */
 	public static function getZoneSize() : array {
 		return self::$zoneSize;
 	}

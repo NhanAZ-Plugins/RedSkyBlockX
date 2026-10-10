@@ -65,6 +65,9 @@ jobs:
       - name: Test message defaults and custom text preservation
         run: php tests/message-update.php
 
+      - name: Test zone configuration and unavailable world preservation
+        run: php tests/zone-configuration.php
+
       - name: Run PHPStan analysis
         run: vendor/bin/phpstan analyze
   build-phar:
