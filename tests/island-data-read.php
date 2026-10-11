@@ -67,6 +67,26 @@ try {
 	if ($island->getIslandCenter() !== [1, 3]) {
 		throw new RuntimeException('A valid spawn point was rejected');
 	}
+	$futureData = $validIsland;
+	$futureData['creator'] = 'Legacy';
+	$futureData['future_fields'] = ['format' => 2, 'flags' => ['keep' => true]];
+	$futurePath = $playersFolder . '/Legacy.json';
+	$futureBytes = json_encode($futureData, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+	file_put_contents($futurePath, $futureBytes);
+	$manager->constructAllIslands();
+	if (file_get_contents($futurePath) !== $futureBytes) {
+		throw new RuntimeException('Loading a valid island rewrote its file');
+	}
+	$loadedFuture = $manager->getIslands()['Legacy'] ?? null;
+	if (!$loadedFuture instanceof Island || $loadedFuture->getAdditionalData()['future_fields'] !== $futureData['future_fields']) {
+		throw new RuntimeException('Loading an island dropped unrecognized fields');
+	}
+	$loadedFuture->setName('Updated island');
+	$manager->saveAllIslands();
+	$futureSaved = json_decode(file_get_contents($futurePath), true, 512, JSON_THROW_ON_ERROR);
+	if ($futureSaved['name'] !== 'Updated island' || $futureSaved['future_fields'] !== $futureData['future_fields']) {
+		throw new RuntimeException('Autosave dropped unrecognized island fields');
+	}
 	try {
 		$island->setSpawnPoint([1, 2, 3, 4]);
 		throw new RuntimeException('An oversized spawn point was accepted');
@@ -146,7 +166,7 @@ try {
 		throw new RuntimeException('Successful island deletion left a saved file or registry entry');
 	}
 } finally {
-	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'notes.txt'] as $fileName) {
+	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'Legacy.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
 		if (is_file($path)) {
 			unlink($path);

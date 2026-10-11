@@ -108,23 +108,7 @@ class IslandManager {
 	 * @return array<string, mixed>
 	 */
 	public function verifyIslandDataIntegrity(array $islandData, string $playerName) : array {
-		$requiredKeys = [
-			"creator",
-			"name",
-			"size",
-			"value",
-			"initialspawnpoint",
-			"spawnpoint",
-			"members",
-			"banned",
-			"resetcooldown",
-			"lockstatus",
-			"settings",
-			"stats",
-			"permissions",
-			"experience"
-		];
-		foreach ($requiredKeys as $key) {
+		foreach (Island::PERSISTED_KEYS as $key) {
 			if (!isset($islandData[$key])) {
 				$islandData[$key] = null;
 			}
@@ -151,7 +135,7 @@ class IslandManager {
 			}
 			$playerName = substr($fileName, 0, -5); // removes the .json from the file name
 			try {
-				$this->constructIsland($islandData, $playerName);
+				$this->addIsland(new Island($this->verifyIslandDataIntegrity($islandData, $playerName)));
 			} catch (UnexpectedValueException $e) {
 				$plugin->getLogger()->warning("Skipped invalid island data in {$fileName}: {$e->getMessage()}");
 			}
@@ -176,7 +160,7 @@ class IslandManager {
 			"permissions" => $island->getPermissions(),
 			"experience" => $island->getXP()
 		];
-		return $islandData;
+		return $islandData + $island->getAdditionalData();
 	}
 
 	public function saveIsland(Island $island) : void {

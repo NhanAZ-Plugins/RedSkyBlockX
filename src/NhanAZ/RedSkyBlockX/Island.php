@@ -7,6 +7,8 @@ namespace NhanAZ\RedSkyBlockX;
 use pocketmine\player\Player;
 use UnexpectedValueException;
 use function abs;
+use function array_diff_key;
+use function array_fill_keys;
 use function array_is_list;
 use function array_key_exists;
 use function array_push;
@@ -25,6 +27,11 @@ use function round;
 use function strtolower;
 
 class Island {
+	public const PERSISTED_KEYS = [
+		"creator", "name", "size", "value", "initialspawnpoint", "spawnpoint",
+		"members", "banned", "resetcooldown", "lockstatus", "settings",
+		"stats", "permissions", "experience"
+	];
 
 	public const MEMBER_RANKS = ["member", "helper", "moderator", "admin"];
 
@@ -65,6 +72,9 @@ class Island {
 
 	private int $experience;
 
+	/** @var array<string, mixed> */
+	private array $additionalData;
+
 	/** @var array<string, bool> */
 	private array $defaultSettings = [
 		"pvp" => false,
@@ -94,6 +104,7 @@ class Island {
 
 	/** @param array<string, mixed> $islandData */
 	public function __construct(array $islandData) {
+		$this->additionalData = array_diff_key($islandData, array_fill_keys(self::PERSISTED_KEYS, true));
 		$this->creator = self::readString($islandData["creator"] ?? null, "creator");
 		$this->name = self::readString($islandData["name"] ?? null, "name");
 		if ($this->name === "") {
@@ -135,6 +146,11 @@ class Island {
 				$this->permissions[$rank] = $defaults;
 			}
 		}
+	}
+
+	/** @return array<string, mixed> */
+	public function getAdditionalData() : array {
+		return $this->additionalData;
 	}
 
 	private static function readString(mixed $value, string $field) : string {

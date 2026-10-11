@@ -14,7 +14,7 @@ The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](http
 
 ## Configuration and commands
 
-The source templates are [`config.yml`](resources/config.yml), [`skyblock.json`](resources/skyblock.json), and [`messages.yml`](resources/messages.yml). They define generator contents, starting items, island settings, world state, and player messages. The plugin stores island records under its `Players` data directory. Back up that directory and the associated worlds before any experimental test. The current migration has not been validated against real player data.
+The source templates are [`config.yml`](resources/config.yml), [`skyblock.json`](resources/skyblock.json), and [`messages.yml`](resources/messages.yml). They define generator contents, starting items, island settings, world state, and player messages. The plugin stores island records under its `Players` data directory. Loading an island does not immediately rewrite its JSON file, and later saves retain fields that this version does not recognize. Back up that directory and the associated worlds before any experimental test. The current migration has not been validated against real player data.
 
 The main command is `/skyblock`, with `/is`, `/sb`, `/island`, and `/isle` aliases declared in source. The command tree contains island creation, visiting, invitations, membership, settings, and administration. Use `/skyblock help` to inspect subcommands in an isolated test environment. Permissions are declared in [`plugin.yml`](plugin.yml).
 
