@@ -11,6 +11,7 @@ use NhanAZ\RedSkyBlockX\Island;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use pocketmine\world\Position;
+use function array_key_exists;
 use function in_array;
 use function str_replace;
 use function strtolower;
@@ -39,7 +40,7 @@ class Visit extends SBSubCommand {
 				$banned = $island->getBanned();
 				$lockStatus = $island->getLockStatus();
 				if (!in_array(strtolower($sender->getName()), $banned, true)) {
-					if (!$lockStatus || in_array(strtolower($sender->getName()), $members, true) || $sender->hasPermission("redskyblockx.bypass") || $islandCreator === $sender->getName()) {
+					if (!$lockStatus || array_key_exists(strtolower($sender->getName()), $members) || $sender->hasPermission("redskyblockx.bypass") || $islandCreator === $sender->getName()) {
 						$masterWorld = $this->plugin->islandManager->getMasterWorld();
 						$islandSpawn = $island->getSpawnPoint();
 						$sender->teleport(new Position($islandSpawn[0], $islandSpawn[1], $islandSpawn[2], $masterWorld));
@@ -66,7 +67,7 @@ class Visit extends SBSubCommand {
 					$banned = $island->getBanned();
 					$lockStatus = $island->getLockStatus();
 					if (!in_array(strtolower($sender->getName()), $banned, true)) {
-						if (!$lockStatus || in_array(strtolower($sender->getName()), $members, true) || $sender->hasPermission("redskyblockx.bypass") || $sender->getName() === $islandCreator) {
+						if (!$lockStatus || array_key_exists(strtolower($sender->getName()), $members) || $sender->hasPermission("redskyblockx.bypass") || $sender->getName() === $islandCreator) {
 							$masterWorld = $this->plugin->islandManager->getMasterWorld();
 							$islandSpawn = $island->getSpawnPoint();
 							$sender->teleport(new Position($islandSpawn[0], $islandSpawn[1], $islandSpawn[2], $masterWorld));

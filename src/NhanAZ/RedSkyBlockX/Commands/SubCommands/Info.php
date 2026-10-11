@@ -9,10 +9,10 @@ use NhanAZ\RedSkyBlockX\Commands\SBSubCommand;
 use NhanAZ\RedSkyBlockX\Island;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
+use function array_key_exists;
 use function array_keys;
 use function gmdate;
 use function implode;
-use function in_array;
 use function str_replace;
 use function strtolower;
 use function Time;
@@ -31,7 +31,7 @@ class Info extends SBSubCommand {
 		if (!$sender instanceof Player) return;
 		$island = $this->plugin->islandManager->getIslandAtPlayer($sender);
 		if ($island instanceof Island) {
-			if ($island->getCreator() === $sender->getName() || in_array(strtolower($sender->getName()), $island->getMembers(), true) || $sender->hasPermission("redskyblockx.admin")) {
+			if ($island->getCreator() === $sender->getName() || array_key_exists(strtolower($sender->getName()), $island->getMembers()) || $sender->hasPermission("redskyblockx.admin")) {
 				$sender->sendMessage($this->getIslandInfoFull($island));
 			} else {
 				$islandName = $island->getName();
