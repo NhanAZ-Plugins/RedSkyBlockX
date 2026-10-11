@@ -111,10 +111,13 @@ class SkyblockListener implements Listener {
 		$player = $event->getPlayer();
 		ZoneManager::clearZoneTools($player);
 		$island = $this->plugin->islandManager->getIslandAtPlayer($player);
-		if ($island instanceof Island && $island->getLockStatus()
-			&& $island->getCreator() !== $player->getName()
-			&& !array_key_exists(strtolower($player->getName()), $island->getMembers())
-			&& !$player->hasPermission("redskyblockx.bypass")) {
+		if ($island instanceof Island && (
+			in_array(strtolower($player->getName()), $island->getBanned(), true)
+			|| ($island->getLockStatus()
+				&& $island->getCreator() !== $player->getName()
+				&& !array_key_exists(strtolower($player->getName()), $island->getMembers())
+				&& !$player->hasPermission("redskyblockx.bypass"))
+		)) {
 			$defaultWorld = $this->plugin->getServer()->getWorldManager()->getDefaultWorld();
 			if ($defaultWorld !== null) {
 				$player->teleport($defaultWorld->getSafeSpawn());
