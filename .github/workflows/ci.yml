@@ -35,6 +35,9 @@ jobs:
       - name: Install PHPStan Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
 
+      - name: Verify installed PHP extensions and platform requirements
+        run: composer check-platform-reqs
+
       - name: Test zone tool drop and cleanup behavior
         run: php tests/zone-tools.php
 
@@ -101,6 +104,8 @@ jobs:
           pm-version-major: "5"
       - name: Install Composer dependencies for PHAR build
         run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
+      - name: Verify PHP extensions before building the plugin
+        run: composer check-platform-reqs
       - name: Build plugin PHAR with Pharynx
         shell: bash
         run: |
