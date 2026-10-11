@@ -41,6 +41,13 @@ class Remove extends SBSubCommand {
 							$message = $this->getMShop()->construct("REMOVED_FROM_ISLAND");
 							$message = str_replace("{ISLAND_NAME}", $island->getName(), $message);
 							$player->sendMessage($message);
+							if ($island->getLockStatus() && $this->plugin->islandManager->isOnIsland($player, $island)
+								&& !$player->hasPermission("redskyblockx.bypass")) {
+								$defaultWorld = $this->plugin->getServer()->getWorldManager()->getDefaultWorld();
+								if ($defaultWorld !== null) {
+									$player->teleport($defaultWorld->getSafeSpawn());
+								}
+							}
 						}
 					} else {
 						$message = $this->getMShop()->construct("NOT_A_MEMBER_OTHER");

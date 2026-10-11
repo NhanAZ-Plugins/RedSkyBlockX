@@ -110,6 +110,16 @@ class SkyblockListener implements Listener {
 	public function onJoin(PlayerJoinEvent $event) : void {
 		$player = $event->getPlayer();
 		ZoneManager::clearZoneTools($player);
+		$island = $this->plugin->islandManager->getIslandAtPlayer($player);
+		if ($island instanceof Island && $island->getLockStatus()
+			&& $island->getCreator() !== $player->getName()
+			&& !array_key_exists(strtolower($player->getName()), $island->getMembers())
+			&& !$player->hasPermission("redskyblockx.bypass")) {
+			$defaultWorld = $this->plugin->getServer()->getWorldManager()->getDefaultWorld();
+			if ($defaultWorld !== null) {
+				$player->teleport($defaultWorld->getSafeSpawn());
+			}
+		}
 	}
 
 	public function onQuit(PlayerQuitEvent $event) : void {
