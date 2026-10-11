@@ -17,6 +17,7 @@
     },
     "config": {
         "platform": {
+            "php": "8.2.0",
             "ext-chunkutils2": "0.3.1",
             "ext-crypto": "0.3.1",
             "ext-encoding": "1.0.0",
