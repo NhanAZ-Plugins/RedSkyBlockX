@@ -77,7 +77,17 @@ class IslandManager {
 			return null;
 		}
 		$data = json_decode($content, true);
-		return is_array($data) && !array_is_list($data) ? $data : null;
+		if (!is_array($data) || array_is_list($data)) {
+			return null;
+		}
+		$result = [];
+		foreach ($data as $key => $value) {
+			if (!is_string($key)) {
+				return null;
+			}
+			$result[$key] = $value;
+		}
+		return $result;
 	}
 
 	/** @param array<string, mixed> $islandData */

@@ -36,6 +36,7 @@ try {
 
 	file_put_contents($playersFolder . '/Broken.json', '{invalid');
 	file_put_contents($playersFolder . '/List.json', '[]');
+	file_put_contents($playersFolder . '/Numeric.json', '{"1":"untyped key"}');
 	file_put_contents($playersFolder . '/notes.txt', 'not an island');
 	$invalidIsland = '{"creator":"NoSpawn","initialspawnpoint":[1,2]}';
 	file_put_contents($playersFolder . '/NoSpawn.json', $invalidIsland);
@@ -45,7 +46,7 @@ try {
 	file_put_contents($playersFolder . '/BadSize.json', $invalidSize);
 	$invalidPermissions = '{"creator":"BadPermissions","initialspawnpoint":[1,2,3],"permissions":{"member":[false]}}';
 	file_put_contents($playersFolder . '/BadPermissions.json', $invalidPermissions);
-	if ($manager->getIslandData('Broken') !== null || $manager->getIslandData('List') !== null || $manager->getIslandData('Missing') !== null) {
+	if ($manager->getIslandData('Broken') !== null || $manager->getIslandData('List') !== null || $manager->getIslandData('Numeric') !== null || $manager->getIslandData('Missing') !== null) {
 		throw new RuntimeException('Invalid or missing island data was accepted');
 	}
 
@@ -166,7 +167,7 @@ try {
 		throw new RuntimeException('Successful island deletion left a saved file or registry entry');
 	}
 } finally {
-	foreach (['Alice.json', 'Broken.json', 'List.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'Legacy.json', 'notes.txt'] as $fileName) {
+	foreach (['Alice.json', 'Broken.json', 'List.json', 'Numeric.json', 'NoSpawn.json', 'BadSpawn.json', 'BadSize.json', 'BadPermissions.json', 'Legacy.json', 'notes.txt'] as $fileName) {
 		$path = $playersFolder . '/' . $fileName;
 		if (is_file($path)) {
 			unlink($path);
