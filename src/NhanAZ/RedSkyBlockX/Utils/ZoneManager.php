@@ -94,10 +94,12 @@ class ZoneManager {
 	/** @return array<int, int|float> */
 	private static function readCoordinates(mixed $value) : array {
 		if (!is_array($value) || !array_is_list($value) || count($value) !== 3) return [];
+		$coordinates = [];
 		foreach ($value as $coordinate) {
 			if ((!is_int($coordinate) && !is_float($coordinate)) || !is_finite((float) $coordinate)) return [];
+			$coordinates[] = $coordinate;
 		}
-		return $value;
+		return $coordinates;
 	}
 
 	public static function createZone() : bool {

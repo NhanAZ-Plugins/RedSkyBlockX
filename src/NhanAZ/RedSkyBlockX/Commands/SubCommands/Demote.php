@@ -37,9 +37,8 @@ class Demote extends SBSubCommand {
 			if (array_key_exists($playerName, $members)) {
 				$currentRank = $members[$playerName];
 				$possibleRanks = Island::MEMBER_RANKS;
-				$lowestRank = $possibleRanks[0];
-				if ($currentRank !== $lowestRank) {
-					$index = array_search($currentRank, $possibleRanks, true);
+				$index = array_search($currentRank, $possibleRanks, true);
+				if ($index !== false && isset($possibleRanks[$index - 1])) {
 					$newRank = $possibleRanks[$index - 1];
 					$island->setRank($playerName, $newRank);
 					$message = $this->getMShop()->construct("DEMOTED_OTHER");

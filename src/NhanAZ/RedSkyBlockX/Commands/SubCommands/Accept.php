@@ -11,7 +11,7 @@ use NhanAZ\RedSkyBlockX\Island;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use function count;
-use function intval;
+use function is_int;
 use function str_replace;
 
 class Accept extends SBSubCommand {
@@ -32,7 +32,11 @@ class Accept extends SBSubCommand {
 		if ($island instanceof Island) {
 			$members = $island->getMembers();
 			$memberCount = count($members);
-			$memberLimit = intval($this->plugin->cfg->get("Member Limit"));
+			$memberLimit = $this->plugin->cfg->get("Member Limit");
+			if (!is_int($memberLimit) || $memberLimit < 0) {
+				$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+				return;
+			}
 			if ($memberLimit > $memberCount) {
 				if ($island->acceptInvite($sender)) {
 					$message = $this->getMShop()->construct("ACCEPTED_INVITE");

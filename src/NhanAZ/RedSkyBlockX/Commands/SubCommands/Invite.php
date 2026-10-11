@@ -11,7 +11,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use function count;
 use function in_array;
-use function intval;
+use function is_int;
 use function str_replace;
 use function strtolower;
 
@@ -35,7 +35,11 @@ class Invite extends SBSubCommand {
 				if ($island === null) return;
 				$members = $island->getMembers();
 				$banned = $island->getBanned();
-				$memberLimit = intval($this->plugin->cfg->get("Member Limit"));
+				$memberLimit = $this->plugin->cfg->get("Member Limit");
+				if (!is_int($memberLimit) || $memberLimit < 0) {
+					$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+					return;
+				}
 				if ($name !== strtolower($island->getCreator())) {
 					if ($memberLimit > count($members) || $sender->hasPermission("redskyblockx.members")) {
 						if (!in_array($name, $banned, true)) {

@@ -31,6 +31,7 @@ use function array_key_exists;
 use function array_sum;
 use function count;
 use function in_array;
+use function is_string;
 use function random_int;
 use function round;
 use function str_replace;
@@ -51,6 +52,7 @@ class SkyblockListener implements Listener {
 		$block = $event->getBlock();
 		$world = $block->getPosition()->getWorld()->getFolderName();
 		$masterWorld = $plugin->skyblock->get("Master World");
+		if (!is_string($masterWorld) || $masterWorld === "") return;
 		if ($world === $masterWorld || $world === $masterWorld . "-Nether") {
 			$generatorOres = self::parseGeneratorOres($plugin->cfg->get("Generator Ores", []));
 			if ($generatorOres === null) {
@@ -278,7 +280,6 @@ class SkyblockListener implements Listener {
 		$masterWorld = $plugin->islandManager->getMasterWorld();
 		$blocks = $event->getTransaction()->getBlocks();
 		foreach ($blocks as [$x, $y, $z, $block]) {
-			if (!$block instanceof Block) return;
 			$blockWorld = $block->getPosition()->world;
 			$player = $event->getPlayer();
 			$island = $plugin->islandManager->getIslandAtBlock($block);

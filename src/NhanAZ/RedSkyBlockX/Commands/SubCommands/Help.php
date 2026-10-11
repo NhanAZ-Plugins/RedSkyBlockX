@@ -14,7 +14,8 @@ use function ceil;
 use function count;
 use function implode;
 use function in_array;
-use function intval;
+use function is_int;
+use function is_string;
 use function str_replace;
 use function strtolower;
 
@@ -28,7 +29,7 @@ class Help extends SBSubCommand {
 	}
 
 	/**
-	 * @param array<string> $args
+	 * @param array<string, mixed> $args
 	 */
 	public function onRun(CommandSender $sender, string $aliasUsed, array $args) : void {
 		$islandCommand = $this->parent;
@@ -39,7 +40,9 @@ class Help extends SBSubCommand {
 		}
 		$subCommandNames = array_unique($subCommandNames);
 		$pageCount = (int) ceil(count($subCommandNames) / 6);
+		if ($pageCount === 0) $pageCount = 1;
 		if (isset($args["command"])) {
+			if (!is_string($args["command"])) return;
 			$commandName = strtolower($args["command"]);
 			if (in_array($commandName, $subCommandNames, true)) {
 				$command = $subCommands[$commandName];
@@ -67,34 +70,29 @@ class Help extends SBSubCommand {
 				$sender->sendMessage($message);
 			}
 		} else {
-			if (isset($args["page#"])) {
+			if (isset($args["page#"]) && is_int($args["page#"])) {
 				$pageNumber = $args["page#"];
 				if ($pageNumber > $pageCount) $pageNumber = $pageCount;
 				if ($pageNumber <= 0) $pageNumber = 1;
 			} else {
 				$pageNumber = 1;
 			}
-			$pageNumber = intval($pageNumber) - 1;
+			$pageNumber -= 1;
 			$index = $pageNumber * 6;
 			$commandsOnPage = array_slice($subCommandNames, $index, 6);
-			$command1 = "";
-			$command2 = "";
-			$command3 = "";
-			$command4 = "";
-			$command5 = "";
-			$command6 = "";
-			for ($x = 0; $x < count($commandsOnPage); $x++) {
-				${"command" . $x + 1} = "/is " . $commandsOnPage[$x];
+			$commandLines = ["", "", "", "", "", ""];
+			foreach ($commandsOnPage as $index => $name) {
+				$commandLines[$index] = "/is " . $name;
 			}
 			$message = $this->getMShop()->construct("HELP_MENU");
 			$message = str_replace("{PAGE_NUMBER}", (string) ($pageNumber + 1), $message);
 			$message = str_replace("{TOTAL_PAGES}", (string) $pageCount, $message);
-			$message = str_replace("{COMMAND_ONE}", $command1, $message);
-			$message = str_replace("{COMMAND_TWO}", $command2, $message);
-			$message = str_replace("{COMMAND_THREE}", $command3, $message);
-			$message = str_replace("{COMMAND_FOUR}", $command4, $message);
-			$message = str_replace("{COMMAND_FIVE}", $command5, $message);
-			$message = str_replace("{COMMAND_SIX}", $command6, $message);
+			$message = str_replace("{COMMAND_ONE}", $commandLines[0], $message);
+			$message = str_replace("{COMMAND_TWO}", $commandLines[1], $message);
+			$message = str_replace("{COMMAND_THREE}", $commandLines[2], $message);
+			$message = str_replace("{COMMAND_FOUR}", $commandLines[3], $message);
+			$message = str_replace("{COMMAND_FIVE}", $commandLines[4], $message);
+			$message = str_replace("{COMMAND_SIX}", $commandLines[5], $message);
 			$sender->sendMessage($message);
 		}
 	}

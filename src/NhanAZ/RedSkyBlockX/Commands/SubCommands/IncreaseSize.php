@@ -11,6 +11,7 @@ use NhanAZ\RedSkyBlockX\Island;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use function intval;
+use function is_int;
 use function str_replace;
 use function strval;
 
@@ -31,7 +32,11 @@ class IncreaseSize extends SBSubCommand {
 		$island = $this->plugin->islandManager->getIslandByCreatorName($playerName);
 		if ($island instanceof Island) {
 			$newSize = $island->getSize() + $addAmount;
-			$maxSize = intval($this->plugin->cfg->get("Island Max Size"));
+			$maxSize = $this->plugin->cfg->get("Island Max Size");
+			if (!is_int($maxSize) || $maxSize <= 0) {
+				$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+				return;
+			}
 			if ($newSize > $maxSize) $newSize = $maxSize;
 			$island->setSize($newSize);
 			$message = $this->getMShop()->construct("PLAYER_ISLAND_SIZE_CHANGE");

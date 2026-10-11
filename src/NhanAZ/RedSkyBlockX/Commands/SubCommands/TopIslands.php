@@ -12,6 +12,7 @@ use function array_keys;
 use function array_slice;
 use function ceil;
 use function count;
+use function is_int;
 use function str_replace;
 
 class TopIslands extends SBSubCommand {
@@ -23,15 +24,15 @@ class TopIslands extends SBSubCommand {
 	}
 
 	/**
-	 * @param array<string> $args
+	 * @param array<string, mixed> $args
 	 */
 	public function onRun(CommandSender $sender, string $aliasUsed, array $args) : void {
 		$topIslands = $this->plugin->islandManager->getTopIslands();
 		$islandNames = array_keys($topIslands);
 		$pageCount = (int) ceil(count($topIslands) / 6);
 		if ($pageCount === 0) $pageCount = 1;
-		if (isset($args["page #"])) {
-			$pageNumber = (int) $args["page #"];
+		if (isset($args["page #"]) && is_int($args["page #"])) {
+			$pageNumber = $args["page #"];
 			if ($pageNumber <= 0) $pageNumber = 1;
 		} else {
 			$pageNumber = 1;
@@ -40,25 +41,23 @@ class TopIslands extends SBSubCommand {
 		$pageNumber -= 1;
 		$index = $pageNumber * 6;
 		$islandsOnPage = array_slice($islandNames, $index, 6);
-		$position1 = "#" . ($index + 1) . "--N/A";
-		$position2 = "#" . ($index + 2) . "--N/A";
-		$position3 = "#" . ($index + 3) . "--N/A";
-		$position4 = "#" . ($index + 4) . "--N/A";
-		$position5 = "#" . ($index + 5) . "--N/A";
-		$position6 = "#" . ($index + 6) . "--N/A";
-		for ($x = 0; $x < count($islandsOnPage); $x++) {
-			$rank = $index + ($x + 1);
-			${"position" . $x + 1} = "#{$rank}--" . $islandsOnPage[$x] . ": " . $topIslands[$islandsOnPage[$x]] . " value";
+		$positionLines = [];
+		for ($position = 0; $position < 6; $position++) {
+			$positionLines[$position] = "#" . ($index + $position + 1) . "--N/A";
+		}
+		foreach ($islandsOnPage as $position => $islandName) {
+			$rank = $index + $position + 1;
+			$positionLines[$position] = "#{$rank}--" . $islandName . ": " . $topIslands[$islandName] . " value";
 		}
 		$message = $this->getMShop()->construct("TOP_ISLANDS");
 		$message = str_replace("{PAGE_NUMBER}", (string) ($pageNumber + 1), $message);
 		$message = str_replace("{TOTAL_PAGES}", (string) $pageCount, $message);
-		$message = str_replace("{POSITION_ONE}", $position1, $message);
-		$message = str_replace("{POSITION_TWO}", $position2, $message);
-		$message = str_replace("{POSITION_THREE}", $position3, $message);
-		$message = str_replace("{POSITION_FOUR}", $position4, $message);
-		$message = str_replace("{POSITION_FIVE}", $position5, $message);
-		$message = str_replace("{POSITION_SIX}", $position6, $message);
+		$message = str_replace("{POSITION_ONE}", $positionLines[0], $message);
+		$message = str_replace("{POSITION_TWO}", $positionLines[1], $message);
+		$message = str_replace("{POSITION_THREE}", $positionLines[2], $message);
+		$message = str_replace("{POSITION_FOUR}", $positionLines[3], $message);
+		$message = str_replace("{POSITION_FIVE}", $positionLines[4], $message);
+		$message = str_replace("{POSITION_SIX}", $positionLines[5], $message);
 		$sender->sendMessage($message);
 	}
 }

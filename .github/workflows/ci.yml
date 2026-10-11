@@ -56,6 +56,12 @@ jobs:
       - name: Test help command details with current Commando API
         run: php tests/help-command.php
 
+      - name: Test top island rankings and pagination
+        run: php tests/top-islands.php
+
+      - name: Test member rank promotion and demotion bounds
+        run: php tests/member-ranks.php
+
       - name: Test message formatting and malformed configuration values
         run: php tests/message-constructor.php
 

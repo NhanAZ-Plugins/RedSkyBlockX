@@ -12,7 +12,6 @@ use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use function array_key_exists;
 use function array_search;
-use function end;
 use function str_replace;
 use function strtolower;
 use function ucfirst;
@@ -38,9 +37,8 @@ class Promote extends SBSubCommand {
 			if (array_key_exists($playerName, $members)) {
 				$currentRank = $members[$playerName];
 				$possibleRanks = Island::MEMBER_RANKS;
-				$highestRank = end($possibleRanks);
-				if ($currentRank !== $highestRank) {
-					$index = array_search($currentRank, $possibleRanks, true);
+				$index = array_search($currentRank, $possibleRanks, true);
+				if ($index !== false && isset($possibleRanks[$index + 1])) {
 					$newRank = $possibleRanks[$index + 1];
 					$island->setRank($playerName, $newRank);
 					$message = $this->getMShop()->construct("PROMOTED_OTHER");

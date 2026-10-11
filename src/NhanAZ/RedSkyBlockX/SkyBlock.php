@@ -16,11 +16,14 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\world\World;
 use function file_exists;
+use function is_finite;
+use function is_float;
+use function is_int;
+use function is_string;
 use function mkdir;
 use function round;
 use function str_replace;
 use function strtolower;
-use function strval;
 
 class SkyBlock extends PluginBase {
 
@@ -77,6 +80,11 @@ class SkyBlock extends PluginBase {
 		$this->listener = new SkyblockListener($this);
 		//begin autosave
 		$autosaveTimer = $this->cfg->get("Autosave Timer");
+		if ((!is_int($autosaveTimer) && !is_float($autosaveTimer)) || !is_finite((float) $autosaveTimer) || $autosaveTimer < 1 / 1200 || $autosaveTimer > PHP_INT_MAX / 1200) {
+			$this->getLogger()->error("Autosave Timer must be a positive number of minutes within the scheduler's range");
+			$this->getServer()->getPluginManager()->disablePlugin($this);
+			return;
+		}
 		$ticks = (int) round($autosaveTimer * 1200); //converts minutes to ticks
 		$this->getScheduler()->scheduleRepeatingTask(new AutoSaveIslands($this), $ticks);
 		//register PacketHooker:
@@ -95,24 +103,24 @@ class SkyBlock extends PluginBase {
 		));
 		self::$instance = $this;
 		//Determine if a skyblock world is being used: -- from older RedSkyBlockX will probably be udpated
-		if ($this->skyblock->get("Master World") === false) {
+		$masterWorldName = $this->skyblock->get("Master World");
+		if (!is_string($masterWorldName) || $masterWorldName === "") {
 			$message = $this->mShop->construct("NO_MASTER");
 			$this->getLogger()->info($message);
-			$masterWorld = false;
 		} else {
-			if ($this->getServer()->getWorldManager()->loadWorld(strval($this->skyblock->get("Master World")))) {
-				$this->getServer()->getWorldManager()->loadWorld(strval($this->skyblock->get("Master World")));
-				if ($this->cfg->get("Nether Islands")) {
-					$this->getServer()->getWorldManager()->loadWorld($this->skyblock->get("Master World") . "-Nether");
+			$worldManager = $this->getServer()->getWorldManager();
+			if ($worldManager->isWorldLoaded($masterWorldName) || $worldManager->loadWorld($masterWorldName)) {
+				if ($this->cfg->get("Nether Islands") === true) {
+					$worldManager->loadWorld($masterWorldName . "-Nether");
 				}
 			} else {
 				$message = $this->mShop->construct("LOAD_ERROR");
 				$this->getLogger()->info($message);
 			}
-			$masterWorld = $this->getServer()->getWorldManager()->getWorldByName(strval($this->skyblock->get("Master World")));
+			$masterWorld = $worldManager->getWorldByName($masterWorldName);
 			if (!$masterWorld instanceof World) {
 				$message = $this->mShop->construct("MASTER_FAILED");
-				$message = str_replace("{MWORLD}", strval($this->skyblock->get("Master World")), $message);
+				$message = str_replace("{MWORLD}", $masterWorldName, $message);
 				$this->getLogger()->info($message);
 				$masterWorld = null;
 			} else {
