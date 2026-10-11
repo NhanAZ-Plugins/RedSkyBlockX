@@ -6,6 +6,7 @@ namespace NhanAZ\RedSkyBlockX\Commands\SubCommands;
 
 use CortexPE\Commando\constraint\InGameRequiredConstraint;
 use NhanAZ\RedSkyBlockX\Commands\SBSubCommand;
+use NhanAZ\RedSkyBlockX\Utils\IslandChunkPreparation;
 use NhanAZ\RedSkyBlockX\Utils\ItemParser;
 use NhanAZ\RedSkyBlockX\Utils\ZoneManager;
 use pocketmine\block\tile\Chest;
@@ -14,15 +15,19 @@ use pocketmine\block\VanillaBlocks;
 use pocketmine\command\CommandSender;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
-use pocketmine\world\format\Chunk;
 use pocketmine\world\Position;
+use function array_is_list;
 use function count;
-use function end;
 use function explode;
-use function floatval;
 use function floor;
 use function intval;
-use function strval;
+use function is_array;
+use function is_finite;
+use function is_float;
+use function is_int;
+use function is_string;
+use function max;
+use function min;
 use function Time;
 
 class Create extends SBSubCommand {
@@ -43,7 +48,11 @@ class Create extends SBSubCommand {
 		if ($this->checkMasterWorld()) {
 			if ($this->checkZone()) {
 				$plugin = $this->plugin;
-				$masterWorldName = strval($plugin->skyblock->get("Master World"));
+				$masterWorldName = $plugin->skyblock->get("Master World");
+				if (!is_string($masterWorldName) || $masterWorldName === "") {
+					$sender->sendMessage($this->getMShop()->construct("NO_MASTER_WORLD"));
+					return;
+				}
 				if (!$plugin->getServer()->getWorldManager()->isWorldLoaded($masterWorldName)
 					&& !$plugin->getServer()->getWorldManager()->loadWorld($masterWorldName)) {
 					$message = $this->getMShop()->construct("LOAD_ERROR");
@@ -63,6 +72,16 @@ class Create extends SBSubCommand {
 					$stepChecker = $plugin->skyblock->get("Step Checker");
 					$lastX = $plugin->skyblock->get("Last X");
 					$lastZ = $plugin->skyblock->get("Last Z");
+					if (!is_int($interval) || $interval <= 0 || !is_int($initialSize) || $initialSize <= 0 || !is_int($islandSpawnY) || !is_int($resetCooldown) || $resetCooldown < 0 || !is_int($turns) || $turns < 0 || !is_int($steps) || $steps < -1 || !is_int($stepChecker) || $stepChecker < 1 || !is_int($lastX) || !is_int($lastZ) || !is_array($startingItems)) {
+					$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+					return;
+				}
+				foreach ($startingItems as $itemName => $itemCount) {
+					if (!is_string($itemName) || !is_int($itemCount) || $itemCount < 1) {
+						$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+						return;
+					}
+				}
 					$dir = 0;
 					if ($steps === -1) {
 						$lastX += $interval;
@@ -93,8 +112,20 @@ class Create extends SBSubCommand {
 						}
 					}
 					$cSpawnVals = $plugin->skyblock->get("CSpawnVals", []);
-					if (!is_array($cSpawnVals)) return;
-					$initialSpawnPoint = [$lastX + $cSpawnVals[0], $islandSpawnY + $cSpawnVals[1], $lastZ + $cSpawnVals[2]];
+					if (!is_array($cSpawnVals) || !array_is_list($cSpawnVals) || count($cSpawnVals) !== 3) {
+						$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+						return;
+					}
+					[$spawnOffsetX, $spawnOffsetY, $spawnOffsetZ] = $cSpawnVals;
+					if ((!is_int($spawnOffsetX) && !is_float($spawnOffsetX)) || (!is_int($spawnOffsetY) && !is_float($spawnOffsetY)) || (!is_int($spawnOffsetZ) && !is_float($spawnOffsetZ))) {
+						$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+						return;
+					}
+					if (!is_finite((float) $spawnOffsetX) || !is_finite((float) $spawnOffsetY) || !is_finite((float) $spawnOffsetZ)) {
+						$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+						return;
+					}
+					$initialSpawnPoint = [$lastX + $spawnOffsetX, $islandSpawnY + $spawnOffsetY, $lastZ + $spawnOffsetZ];
 					$islandData = [
 						"creator" => $senderName,
 						"name" => $senderName . "'s island",
@@ -104,15 +135,35 @@ class Create extends SBSubCommand {
 						"resetcooldown" => Time() + $resetCooldown
 					];
 					$zone = ZoneManager::getZone();
-					$zoneStartPosition = ZoneManager::getZoneStartPosition();
 					$zoneSize = ZoneManager::getZoneSize();
-					$chunkX = $lastX >> Chunk::COORD_BIT_SIZE;
-					$chunkZ = $lastZ >> Chunk::COORD_BIT_SIZE;
-					$adjacentChunks = [[$chunkX, $chunkZ], [$chunkX + 1, $chunkZ + 1], [$chunkX, $chunkZ + 1], [$chunkX - 1, $chunkZ + 1], [$chunkX - 1, $chunkZ], [$chunkX - 1, $chunkZ - 1], [$chunkX, $chunkZ - 1], [$chunkX + 1, $chunkZ - 1], [$chunkX + 1, $chunkZ]];
-					foreach ($adjacentChunks as $chunk) {
-						if ($chunk === end($adjacentChunks)) {
-							if ($masterWorld === null) return;
-							$masterWorld->orderChunkPopulation($chunk[0], $chunk[1], null)->onCompletion(function (Chunk $chunk) use ($lastX, $lastZ, $islandSpawnY, $masterWorld, $plugin, $sender, $islandData, $zone, $zoneSize, $initialSpawnPoint, $startingItems): void {
+					if ($masterWorld === null || count($zoneSize) !== 3) return;
+					foreach ($zoneSize as $dimension) {
+						if ($dimension < 0) {
+							$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+							return;
+						}
+					}
+					$expectedBlocks = (floor($zoneSize[0]) + 1) * (floor($zoneSize[1]) + 1) * (floor($zoneSize[2]) + 1);
+					if ($expectedBlocks !== (float) count($zone)) {
+						$sender->sendMessage($this->getMShop()->construct("ISLAND_CONFIGURATION_ERROR"));
+						return;
+					}
+					$chestX = intval(floor($initialSpawnPoint[0]));
+					$chestY = intval(floor($initialSpawnPoint[1] - 1));
+					$chestZ = intval(floor($initialSpawnPoint[2] + 1));
+					$chunks = IslandChunkPreparation::coordinates(
+						min($lastX, $chestX),
+						max(intval(floor($lastX + $zoneSize[0])), $chestX),
+						min($lastZ, $chestZ),
+						max(intval(floor($lastZ + $zoneSize[2])), $chestZ)
+					);
+					$promises = [];
+					foreach ($chunks as [$chunkX, $chunkZ]) {
+						$promises[] = $masterWorld->orderChunkPopulation($chunkX, $chunkZ, null);
+					}
+					IslandChunkPreparation::awaitAll(
+						$promises,
+						function () use ($lastX, $lastZ, $islandSpawnY, $masterWorld, $plugin, $sender, $islandData, $zone, $zoneSize, $initialSpawnPoint, $startingItems, $chestX, $chestY, $chestZ): void {
 								$counter = 0;
 								for ($x = $lastX; $x <= $lastX + $zoneSize[0]; $x++) {
 									for ($y = $islandSpawnY; $y <= $islandSpawnY + $zoneSize[1]; $y++) {
@@ -120,16 +171,15 @@ class Create extends SBSubCommand {
 											$blockData = explode(":", $zone[$counter]);
 											$blockName = $blockData[0];
 											$block = ItemParser::parseBlock($blockName);
-											$masterWorld->setBlock(new Vector3(floatval($x), floatval($y), floatval($z)), $block, false);
+											$masterWorld->setBlock(new Vector3($x, $y, $z), $block, false);
 											$counter++;
 										}
 									}
 								}
-								$masterWorld->setBlock(new Vector3($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1), VanillaBlocks::CHEST());
-								$startingChest = $masterWorld->getTileAt($initialSpawnPoint[0], $initialSpawnPoint[1] - 1, $initialSpawnPoint[2] + 1);
+								$masterWorld->setBlock(new Vector3($chestX, $chestY, $chestZ), VanillaBlocks::CHEST());
+								$startingChest = $masterWorld->getTileAt($chestX, $chestY, $chestZ);
 								if (!$startingChest instanceof Tile) return;
 								if (!$startingChest instanceof Chest) return;
-								if (!is_array($startingItems)) return;
 								if ($plugin->islandManager->createIsland($islandData, $sender->getName()) === null) {
 									$message = $this->getMShop()->construct("FILE_CREATION_ERROR");
 									$sender->sendMessage($message);
@@ -137,8 +187,8 @@ class Create extends SBSubCommand {
 								}
 								if (count($startingItems) !== 0) {
 									foreach ($startingItems as $itemName => $count) {
-											$item = ItemParser::parseItem(strval($itemName));
-										$item->setCount(intval($count));
+										$item = ItemParser::parseItem($itemName);
+										$item->setCount($count);
 										$startingChest->getInventory()->addItem($item);
 									}
 								}
@@ -146,13 +196,11 @@ class Create extends SBSubCommand {
 								if ($doCreateTeleport) $sender->teleport(new Position($initialSpawnPoint[0], $initialSpawnPoint[1], $initialSpawnPoint[2], $masterWorld));
 								$message = $this->getMShop()->construct("ISLAND_CREATED");
 								$sender->sendMessage($message);
-							}, static function (): void {
-							});
-						} else {
-							if ($masterWorld === null) return;
-							$masterWorld->orderChunkPopulation($chunk[0], $chunk[1], null);
+						},
+						function () use ($sender): void {
+							$sender->sendMessage($this->getMShop()->construct("LOAD_ERROR"));
 						}
-					}
+					);
 					$plugin->skyblock->set("Steps", $steps);
 					$plugin->skyblock->set("Turns", $turns);
 					$plugin->skyblock->set("Step Checker", $stepChecker);

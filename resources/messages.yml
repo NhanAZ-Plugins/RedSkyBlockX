@@ -52,6 +52,7 @@ NO_ISLAND: "{RED}You have not created a SkyBlock island yet!"
 
 # Message sent if there is an error with generating data files:
 FILE_CREATION_ERROR: "{RED}Error creating files required for this task."
+ISLAND_CONFIGURATION_ERROR: "{RED}Island configuration is invalid. Ask an administrator to review it."
 ISLAND_DELETE_ERROR: "{RED}Could not delete the saved island. No changes were made."
 
 # Message sent upon teleporting to your own island:

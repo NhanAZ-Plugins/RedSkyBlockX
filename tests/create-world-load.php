@@ -14,12 +14,14 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\world\WorldManager;
+use pocketmine\world\World;
 
 class CreationReached extends RuntimeException {}
 
 class FixturePlayer extends Player {
 	/** @var list<string> */
 	public array $messages = [];
+	public function getName() : string { return 'FixtureUser'; }
 
 	public function sendMessage(Translatable|string $message) : void {
 		if (!is_string($message)) throw new RuntimeException('Unexpected translatable message');
@@ -51,6 +53,10 @@ class CreateWorldManager extends WorldManager {
 		++$this->loadCalls;
 		return $this->loaded = $this->loadResult;
 	}
+
+	public function getWorldByName(string $name) : ?World {
+		return null;
+	}
 }
 
 class FixtureCreate extends Create {
@@ -59,6 +65,20 @@ class FixtureCreate extends Create {
 	public function checkIsland(Player $player) : bool { throw new CreationReached(); }
 	public function getMShop() : MessageConstructor {
 		return (new ReflectionClass(FixtureMessages::class))->newInstanceWithoutConstructor();
+	}
+}
+
+class FixtureCreateInvalidConfig extends FixtureCreate {
+	public function checkIsland(Player $player) : bool { return false; }
+	public function getMShop() : MessageConstructor {
+		return (new ReflectionClass(FixtureInvalidConfigMessages::class))->newInstanceWithoutConstructor();
+	}
+}
+
+class FixtureInvalidConfigMessages extends MessageConstructor {
+	public function construct(string $identifier) : string {
+		if ($identifier !== 'ISLAND_CONFIGURATION_ERROR') throw new RuntimeException('Unexpected message key');
+		return 'invalid configuration';
 	}
 }
 
@@ -96,8 +116,20 @@ try {
 	if ($worldManager->loadCalls !== 1 || $player->messages !== ['load failed']) {
 		throw new RuntimeException('Failed world load did not stop island creation with an error');
 	}
+
+	$worldManager->loaded = true;
+	$player->messages = [];
+	$plugin->cfg = new Config($configPath . '.settings', Config::JSON);
+	$plugin->cfg->set('Island Interval', 0);
+	$invalidCommand = (new ReflectionClass(FixtureCreateInvalidConfig::class))->newInstanceWithoutConstructor();
+	(new ReflectionProperty(SBSubCommand::class, 'plugin'))->setValue($invalidCommand, $plugin);
+	$invalidCommand->onRun($player, 'create', []);
+	if ($player->messages !== ['invalid configuration']) {
+		throw new RuntimeException('Invalid island configuration did not stop before scheduling chunks');
+	}
 } finally {
 	if (is_file($configPath)) unlink($configPath);
+	if (is_file($configPath . '.settings')) unlink($configPath . '.settings');
 }
 
 echo "PASS: island creation continues after loading master world\n";

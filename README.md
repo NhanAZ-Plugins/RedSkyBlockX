@@ -14,7 +14,7 @@ The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](http
 
 ## Configuration and commands
 
-The source templates are [`config.yml`](resources/config.yml), [`skyblock.json`](resources/skyblock.json), and [`messages.yml`](resources/messages.yml). They define generator contents, starting items, island settings, world state, and player messages. The plugin stores island records under its `Players` data directory. Loading an island does not immediately rewrite its JSON file, and later saves retain fields that this version does not recognize. Back up that directory and the associated worlds before any experimental test. The current migration has not been validated against real player data.
+The source templates are [`config.yml`](resources/config.yml), [`skyblock.json`](resources/skyblock.json), and [`messages.yml`](resources/messages.yml). They define generator contents, starting items, island settings, world state, and player messages. The plugin stores island records under its `Players` data directory. Loading an island does not immediately rewrite its JSON file, and later saves retain fields that this version does not recognize. Island creation waits for every chunk covering the configured zone and starting chest; invalid island configuration stops creation before block placement. Back up the `Players` directory and associated worlds before any experimental test. The current migration has not been validated against real player data.
 
 The main command is `/skyblock`, with `/is`, `/sb`, `/island`, and `/isle` aliases declared in source. The command tree contains island creation, visiting, invitations, membership, settings, and administration. Use `/skyblock help` to inspect subcommands in an isolated test environment. Permissions are declared in [`plugin.yml`](plugin.yml).
 
@@ -24,7 +24,7 @@ The main command is `/skyblock`, with `/is`, `/sb`, `/island`, and `/isle` alias
 
 The [CI workflow](.github/workflows/ci.yml) runs focused source fixtures and PHPStan, builds the plugin, verifies required classes, and checks isolated startup. It pins tool and source revisions. Its run title uses GitHub's default commit or pull request text so individual executions remain distinguishable. The latest results and source revision are available in [GitHub Actions](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions).
 
-Changes to island persistence need tests on disposable files and worlds. Do not point development tests at a live server's `Players` directory, world data, or plugin configuration. The repository's current fixtures cover zone-tool cleanup, duplicate island names, island-file reads, master-world lookup, and message formatting. These are source-level checks, not connected-player or gameplay tests.
+Changes to island persistence need tests on disposable files and worlds. Do not point development tests at a live server's `Players` directory, world data, or plugin configuration. The repository's current fixtures cover zone-tool cleanup, duplicate island names, island-file reads, master-world lookup, chunk preparation, and message formatting. These are source-level checks, not connected-player or gameplay tests.
 
 ## License, credits, and support
 
