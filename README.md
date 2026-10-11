@@ -20,7 +20,9 @@ The main command is `/skyblock`, with `/is`, `/sb`, `/island`, and `/isle` alias
 
 ## Building and development
 
-[DevTools](https://github.com/NhanAZ/DevTools) is the preferred tool when a dependency graph meets its supported formats. This project currently locks a development revision of Commando, so CI uses a checksum-pinned Pharynx binary to shade the three locked library sources. It verifies required PHAR contents and boots the plugin on a pinned Axolotl-PM runtime. A successful startup does not prove island gameplay or connected-player behavior.
+[DevTools](https://github.com/NhanAZ/DevTools) is the preferred tool when a dependency graph meets its supported formats. This project currently locks a development revision of Commando, so CI uses a checksum-pinned Pharynx binary to shade the three locked library sources. It verifies required PHAR contents and boots the plugin on a pinned Axolotl-PM runtime. The CI startup check covers loading only.
+
+A separate local test used a disposable one-block zone and a connected headless client. `/skyblock create` created an island. After a restart, `/is info` returned its saved record, a second create request was rejected, and `/is tp` teleported the player to the island. A server-side read after loading the island chunk found the expected stone, chest and starting items. This verifies one test island on one pinned server release. It does not validate larger zones, production data migration, the Bedrock game UI or distribution rights.
 
 The [CI workflow](.github/workflows/ci.yml) runs focused source fixtures and PHPStan, builds the plugin, verifies required classes, and checks isolated startup. It pins tool and source revisions. Its run title uses GitHub's default commit or pull request text so individual executions remain distinguishable. The latest results and source revision are available in [GitHub Actions](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions).
 
