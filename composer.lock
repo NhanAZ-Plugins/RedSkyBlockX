@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "52deb634787840976165d64d3dec41d9",
+    "content-hash": "d2c9d511a4cc0684b0610442be1a8648",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -495,7 +495,7 @@
         },
         {
             "name": "muqsit/simple-packet-handler",
-            "version": "dev-pm5",
+            "version": "v0.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/NhanAZ-Libraries/SimplePacketHandler",
@@ -517,7 +517,6 @@
                 "phpstan/phpstan-phpunit": "^2.0",
                 "phpunit/phpunit": "^10.5"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "virion": {
@@ -3843,8 +3842,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "cortexpe/commando": 20,
-        "muqsit/invmenu": 20,
-        "muqsit/simple-packet-handler": 20
+        "muqsit/invmenu": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
