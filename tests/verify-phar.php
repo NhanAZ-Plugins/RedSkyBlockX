@@ -22,10 +22,10 @@ if (($phar->getSignature()['hash_type'] ?? null) !== 'SHA-256') {
 $required = [
 	'plugin.yml',
 	'src/NhanAZ/RedSkyBlockX/SkyBlock.php',
-	'CortexPE/Commando/PacketHooker.php',
-	'muqsit/simplepackethandler/SimplePacketHandler.php',
-	'muqsit/simplepackethandler/utils/PacketHandler.php',
-	'muqsit/invmenu/InvMenuHandler.php',
+	'PacketHooker.php',
+	'SimplePacketHandler.php',
+	'TypedPacketInterceptorHandler.php',
+	'InvMenuHandler.php',
 	'src/NhanAZ/RedSkyBlockX/Utils/ItemParser.php',
 ];
 $found = [];
