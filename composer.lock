@@ -499,12 +499,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/NhanAZ-Libraries/SimplePacketHandler",
-                "reference": "2321ea9f50ee0583956a119c5a1e3b5afba35706"
+                "reference": "6e360c71907bfe90d880b906844c91be53f3bcf8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/2321ea9f50ee0583956a119c5a1e3b5afba35706",
-                "reference": "2321ea9f50ee0583956a119c5a1e3b5afba35706",
+                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/6e360c71907bfe90d880b906844c91be53f3bcf8",
+                "reference": "6e360c71907bfe90d880b906844c91be53f3bcf8",
                 "shasum": ""
             },
             "require": {
@@ -548,7 +548,7 @@
                 }
             ],
             "description": "Handle specific Axolotl-PM data packets",
-            "time": "2026-10-13T22:51:27+00:00"
+            "time": "2026-10-13T22:57:46+00:00"
         },
         {
             "name": "netresearch/jsonmapper",
