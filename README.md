@@ -6,11 +6,11 @@ RedSkyBlockX is an experimental SkyBlock plugin source for Axolotl-PM. It contai
 
 ## Status and compatibility
 
-The plugin is under development. CI builds an internal PHAR and tests startup on an isolated Axolotl-PM server, but it does not upload or release that PHAR while distribution rights for the combined dependencies remain unresolved. Do not install an unreviewed build on a production server.
+The plugin is under development. CI builds a PHAR, uploads it as a workflow artifact for automated startup tests, and does not publish a user-facing release while distribution rights for the combined dependencies remain unresolved. Do not install an unreviewed build on a production server.
 
 `plugin.yml` declares Axolotl-PM API `5.36.0`, the minimum declared by the pinned Commando dependency. The build workflow smoke-tests the exact PHAR on pinned Axolotl-PM 5.36.0 source and the 5.49.1 release runtime. These exact tested versions do not establish compatibility with every Axolotl-PM 5.x release. See [GitHub Actions](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions) for the exact revisions tested.
 
-The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](https://github.com/Muqsit/InvMenu), and [SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler). Item and block names are parsed with Axolotl-PM's native parsers. Composer locks the source revisions used by static analysis and the internal build.
+The plugin uses [Commando](https://github.com/CortexPE/Commando) for commands and [InvMenu](https://github.com/Muqsit/InvMenu) for inventory forms. Item and block names are parsed with Axolotl-PM's native parsers. Composer locks the source revisions used by static analysis and the PHAR build.
 
 ## Configuration and commands
 
@@ -20,7 +20,7 @@ The main command is `/skyblock`, with `/is`, `/sb`, `/island`, and `/isle` alias
 
 ## Building and development
 
-[DevTools](https://github.com/NhanAZ/DevTools) is the preferred tool when a dependency graph meets its supported formats. This project currently locks a development revision of Commando, so CI uses a checksum-pinned Pharynx binary to shade the three locked library sources. It verifies required PHAR contents and boots the plugin on a pinned Axolotl-PM runtime. The CI startup check covers loading only.
+[DevTools](https://github.com/NhanAZ/DevTools) prepares the Composer-locked virions, runs PHPStan at its maximum level, and builds and validates the standalone PHAR through a reusable workflow pinned to an immutable revision. The workflow artifact is passed unchanged to isolated startup tests on the declared minimum API and current tested Axolotl-PM runtime. The startup checks cover loading only.
 
 A separate local test used a disposable one-block zone and a connected headless client. `/skyblock create` created an island. After a restart, `/is info` returned its saved record, a second create request was rejected, and `/is tp` teleported the player to the island. A server-side read after loading the island chunk found the expected stone, chest and starting items. This verifies one test island on one pinned server release. It does not validate larger zones, production data migration, the Bedrock game UI or distribution rights.
 
