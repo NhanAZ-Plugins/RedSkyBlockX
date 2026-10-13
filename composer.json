@@ -33,6 +33,11 @@
             "type": "vcs",
             "url": "https://github.com/axolotl-pm/PocketMine-MP",
             "no-api": true
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/NhanAZ-Libraries/SimplePacketHandler",
+            "no-api": true
         }
     ]
 }

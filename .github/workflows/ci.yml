@@ -92,52 +92,56 @@ jobs:
       - name: Run PHPStan at maximum level
         run: vendor/bin/phpstan analyze --level=max
   build-phar:
-    name: Build and smoke test plugin PHAR
-    runs-on: ubuntu-latest
+    name: Build and validate plugin PHAR
+    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@6180fb4a04e5981ccb24128823970de3e8fd3830 # v1.0.12
+    with:
+      prepare-dependencies: true
+      php-version: "8.2"
+      pm-version-major: "5"
+
+  runtime-smoke:
+    name: Smoke test plugin startup on supported Axolotl-PM versions
+    needs: build-phar
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out RedSkyBlockX test scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Check out Axolotl-PM 5.36.0 source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: axolotl-pm/PocketMine-MP
-          ref: 85dfee4262256a817439662daee501117e559341 # 5.36.0
+          ref: 85dfee4262256a817439662daee501117e559341 # 5.36.0 source revision
           path: .devtools-compatibility/axolotl-5.36.0
           persist-credentials: false
+
       - name: Set up PHP environment
         uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
           php-version: "8.2"
           install-path: ./.php-bin
           pm-version-major: "5"
-      - name: Install Composer dependencies for PHAR build
-        run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
-      - name: Install Axolotl-PM 5.36.0 source dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --no-progress
-        working-directory: .devtools-compatibility/axolotl-5.36.0
-      - name: Verify PHP extensions before building the plugin
-        run: composer check-platform-reqs
-      - name: Build plugin PHAR with Pharynx
+
+      - name: Download the exact verified plugin artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.build-phar.outputs.artifact-id }}
+          path: ${{ runner.temp }}/devtools-build
+
+      - name: Verify PHAR contents and build checksum
+        env:
+          EXPECTED_SHA256: ${{ needs.build-phar.outputs.sha256 }}
+          PLUGIN_NAME: ${{ needs.build-phar.outputs.plugin-name }}
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --location --silent --show-error \
-            https://github.com/SOF3/pharynx/releases/download/0.3.0/pharynx.phar \
-            --output "$RUNNER_TEMP/pharynx.phar"
-          printf '%s  %s\n' \
-            'd8dfb21d0535c5220668008ebf296867a3b9952be19d8782f356a573b0f4efed' \
-            "$RUNNER_TEMP/pharynx.phar" | sha256sum --check
-          mkdir -p build
-          php -d phar.readonly=0 "$RUNNER_TEMP/pharynx.phar" \
-            -i . \
-            -s vendor/cortexpe/commando/src \
-            -s vendor/muqsit/simple-packet-handler/src \
-            -s vendor/muqsit/invmenu/src \
-            -a 'CortexPE\Commando' \
-            -a 'muqsit\simplepackethandler' \
-            -a 'muqsit\invmenu' \
-            -p=build/RedSkyBlockX.phar
-      - name: Verify required classes in plugin PHAR
-        run: php tests/verify-phar.php build/RedSkyBlockX.phar
+          PLUGIN_PHAR="$RUNNER_TEMP/devtools-build/$PLUGIN_NAME.phar"
+          printf '%s  %s\n' "$EXPECTED_SHA256" "$PLUGIN_PHAR" | sha256sum --check
+          php tests/verify-phar.php "$PLUGIN_PHAR"
+
       - name: Download pinned Axolotl-PM 5.49.1 runtime
         shell: bash
         run: |
@@ -148,14 +152,20 @@ jobs:
           printf '%s  %s\n' \
             'b62ce263c079a00498a49cd3eab0bfa454f4ba195e5f9d62e32927cfc805c665' \
             "$RUNNER_TEMP/PocketMine-MP.phar" | sha256sum --check
+
+      - name: Install Axolotl-PM 5.36.0 source dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --no-plugins
+        working-directory: .devtools-compatibility/axolotl-5.36.0
+
       - name: Smoke test isolated plugin startup on Axolotl-PM 5.49.1
         env:
           SERVER_PHAR: ${{ runner.temp }}/PocketMine-MP.phar
-          PLUGIN_PHAR: build/RedSkyBlockX.phar
+          PLUGIN_PHAR: ${{ runner.temp }}/devtools-build/${{ needs.build-phar.outputs.plugin-name }}.phar
         run: python3 .github/scripts/runtime-smoke.py
+
       - name: Smoke test minimum declared API 5.36.0
         env:
           SERVER_SOURCE: .devtools-compatibility/axolotl-5.36.0
           EXPECTED_SERVER_COMMIT: 85dfee4262256a817439662daee501117e559341
-          PLUGIN_PHAR: build/RedSkyBlockX.phar
+          PLUGIN_PHAR: ${{ runner.temp }}/devtools-build/${{ needs.build-phar.outputs.plugin-name }}.phar
         run: python3 .github/scripts/runtime-smoke.py

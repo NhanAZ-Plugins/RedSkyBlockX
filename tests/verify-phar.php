@@ -24,6 +24,7 @@ $required = [
 	'src/NhanAZ/RedSkyBlockX/SkyBlock.php',
 	'CortexPE/Commando/PacketHooker.php',
 	'muqsit/simplepackethandler/SimplePacketHandler.php',
+	'muqsit/simplepackethandler/utils/PacketHandler.php',
 	'muqsit/invmenu/InvMenuHandler.php',
 	'src/NhanAZ/RedSkyBlockX/Utils/ItemParser.php',
 ];
