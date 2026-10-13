@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
-    name: Run regression tests and platform checks
+  phpstan:
+    name: Run regression tests and PHPStan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -89,48 +89,56 @@ jobs:
       - name: Test zone configuration and unavailable world preservation
         run: php tests/zone-configuration.php
 
+      - name: Run PHPStan at maximum level
+        run: vendor/bin/phpstan analyze --level=max
   build-phar:
-    name: Build and validate plugin PHAR
-    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@6180fb4a04e5981ccb24128823970de3e8fd3830
-    with:
-      axolotl-ref: dfe0d07e48a9e8d5a4a242fa43ff1cd3b743a955
-      prepare-dependencies: true
-      php-version: "8.2"
-      pm-version-major: "5"
-      project: .
-      virions: virions
-      output: build
-      phpstan: max
-
-  runtime-smoke:
-    name: Smoke test on ${{ matrix.runtime_name }}
-    needs: build-phar
+    name: Build and smoke test plugin PHAR
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runtime: stable
-            runtime_name: Axolotl-PM 5.49.1
-          - runtime: minimum
-            runtime_name: Axolotl-PM 5.36.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Download PHAR built by the pinned DevTools workflow
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - name: Check out Axolotl-PM 5.36.0 source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: ${{ needs['build-phar'].outputs['artifact-name'] }}
-          path: build/artifact
-      - name: Verify required files in the built plugin PHAR
-        run: php tests/verify-phar.php build/artifact/RedSkyBlockX.phar
+          repository: axolotl-pm/PocketMine-MP
+          ref: 85dfee4262256a817439662daee501117e559341 # 5.36.0
+          path: .devtools-compatibility/axolotl-5.36.0
+          persist-credentials: false
       - name: Set up PHP environment
         uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
           php-version: "8.2"
           install-path: ./.php-bin
           pm-version-major: "5"
+      - name: Install Composer dependencies for PHAR build
+        run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
+      - name: Install Axolotl-PM 5.36.0 source dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress
+        working-directory: .devtools-compatibility/axolotl-5.36.0
+      - name: Verify PHP extensions before building the plugin
+        run: composer check-platform-reqs
+      - name: Build plugin PHAR with Pharynx
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            https://github.com/SOF3/pharynx/releases/download/0.3.0/pharynx.phar \
+            --output "$RUNNER_TEMP/pharynx.phar"
+          printf '%s  %s\n' \
+            'd8dfb21d0535c5220668008ebf296867a3b9952be19d8782f356a573b0f4efed' \
+            "$RUNNER_TEMP/pharynx.phar" | sha256sum --check
+          mkdir -p build
+          php -d phar.readonly=0 "$RUNNER_TEMP/pharynx.phar" \
+            -i . \
+            -s vendor/cortexpe/commando/src \
+            -s vendor/muqsit/simple-packet-handler/src \
+            -s vendor/muqsit/invmenu/src \
+            -a 'CortexPE\Commando' \
+            -a 'muqsit\simplepackethandler' \
+            -a 'muqsit\invmenu' \
+            -p=build/RedSkyBlockX.phar
+      - name: Verify required classes in plugin PHAR
+        run: php tests/verify-phar.php build/RedSkyBlockX.phar
       - name: Download pinned Axolotl-PM 5.49.1 runtime
-        if: matrix.runtime == 'stable'
         shell: bash
         run: |
           set -euo pipefail
@@ -140,28 +148,14 @@ jobs:
           printf '%s  %s\n' \
             'b62ce263c079a00498a49cd3eab0bfa454f4ba195e5f9d62e32927cfc805c665' \
             "$RUNNER_TEMP/PocketMine-MP.phar" | sha256sum --check
-      - name: Check out Axolotl-PM 5.36.0 source
-        if: matrix.runtime == 'minimum'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: axolotl-pm/PocketMine-MP
-          ref: 85dfee4262256a817439662daee501117e559341 # 5.36.0
-          path: .devtools-compatibility/axolotl-5.36.0
-          persist-credentials: false
-      - name: Install Axolotl-PM 5.36.0 source dependencies
-        if: matrix.runtime == 'minimum'
-        run: composer install --no-dev --prefer-dist --no-interaction --no-progress
-        working-directory: .devtools-compatibility/axolotl-5.36.0
       - name: Smoke test isolated plugin startup on Axolotl-PM 5.49.1
-        if: matrix.runtime == 'stable'
         env:
           SERVER_PHAR: ${{ runner.temp }}/PocketMine-MP.phar
-          PLUGIN_PHAR: build/artifact/RedSkyBlockX.phar
+          PLUGIN_PHAR: build/RedSkyBlockX.phar
         run: python3 .github/scripts/runtime-smoke.py
       - name: Smoke test minimum declared API 5.36.0
-        if: matrix.runtime == 'minimum'
         env:
           SERVER_SOURCE: .devtools-compatibility/axolotl-5.36.0
           EXPECTED_SERVER_COMMIT: 85dfee4262256a817439662daee501117e559341
-          PLUGIN_PHAR: build/artifact/RedSkyBlockX.phar
+          PLUGIN_PHAR: build/RedSkyBlockX.phar
         run: python3 .github/scripts/runtime-smoke.py
