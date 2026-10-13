@@ -8,7 +8,7 @@ RedSkyBlockX is an experimental SkyBlock plugin source for Axolotl-PM. It contai
 
 The plugin is under development. CI builds an internal PHAR and tests startup on an isolated Axolotl-PM server, but it does not upload or release that PHAR while distribution rights for the combined dependencies remain unresolved. Do not install an unreviewed build on a production server.
 
-`plugin.yml` declares Axolotl-PM API `5.36.0`, the minimum declared by the pinned Commando dependency. Source fixtures run in CI with PHP 8.2, and the build workflow tests startup against a pinned server release. The declared API and a single runtime smoke test do not establish compatibility with the full Axolotl-PM 5.x line. See [GitHub Actions](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions) for the exact revision tested.
+`plugin.yml` declares Axolotl-PM API `5.36.0`, the minimum declared by the pinned Commando dependency. The build workflow smoke-tests the exact PHAR on pinned Axolotl-PM 5.36.0 source and the 5.49.1 release runtime. These exact tested versions do not establish compatibility with every Axolotl-PM 5.x release. See [GitHub Actions](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions) for the exact revisions tested.
 
 The source uses [Commando](https://github.com/CortexPE/Commando), [InvMenu](https://github.com/Muqsit/InvMenu), and [SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler). Item and block names are parsed with Axolotl-PM's native parsers. Composer locks the source revisions used by static analysis and the internal build.
 

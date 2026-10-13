@@ -12,8 +12,31 @@ import time
 from pathlib import Path
 
 
-server = Path(os.environ["SERVER_PHAR"]).resolve(strict=True)
+server_phar_value = os.environ.get("SERVER_PHAR")
+server_source_value = os.environ.get("SERVER_SOURCE")
+if (server_phar_value is None) == (server_source_value is None):
+    raise RuntimeError("Set exactly one of SERVER_PHAR or SERVER_SOURCE")
+server_phar = Path(server_phar_value).resolve(strict=True) if server_phar_value is not None else None
+server_source = Path(server_source_value).resolve(strict=True) if server_source_value is not None else None
 plugin = Path(os.environ["PLUGIN_PHAR"]).resolve(strict=True)
+server_commit = None
+
+if server_source is not None:
+    server_entrypoint = server_source / "src" / "PocketMine.php"
+    if not server_entrypoint.is_file() or not (server_source / "vendor" / "autoload.php").is_file():
+        raise RuntimeError("Axolotl-PM source and Composer dependencies are required")
+    server_commit = subprocess.run(
+        ["git", "-C", str(server_source), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    expected_server_commit = os.environ["EXPECTED_SERVER_COMMIT"]
+    if server_commit != expected_server_commit:
+        raise RuntimeError(f"Expected Axolotl-PM source {expected_server_commit}, got {server_commit}")
+else:
+    assert server_phar is not None
+    server_entrypoint = server_phar
 
 with tempfile.TemporaryDirectory(prefix="redskyblockx-smoke-", dir=os.environ.get("RUNNER_TEMP")) as temporary:
     root = Path(temporary)
@@ -37,8 +60,8 @@ with tempfile.TemporaryDirectory(prefix="redskyblockx-smoke-", dir=os.environ.ge
     log = root / "console.log"
     with log.open("w", encoding="utf-8") as output:
         process = subprocess.Popen(
-            ["php", str(server), "--no-wizard", "--disable-ansi", f"--data={data}", f"--plugins={plugins}"],
-            cwd=root,
+            ["php", str(server_entrypoint), "--no-wizard", "--disable-ansi", f"--data={data}", f"--plugins={plugins}"],
+            cwd=server_source if server_source is not None else root,
             stdin=subprocess.PIPE,
             stdout=output,
             stderr=subprocess.STDOUT,
@@ -81,6 +104,7 @@ with tempfile.TemporaryDirectory(prefix="redskyblockx-smoke-", dir=os.environ.ge
     ]
     evidence = {
         "plugin_sha256": hashlib.sha256(plugin.read_bytes()).hexdigest(),
+        "server_commit": server_commit,
         "server_ready": "Done (" in content,
         "plugin_enabled": "Enabling RedSkyBlockX" in content,
         "plugin_disabled": "Disabling RedSkyBlockX" in content,

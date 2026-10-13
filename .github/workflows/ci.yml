@@ -96,6 +96,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out Axolotl-PM 5.36.0 source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: axolotl-pm/PocketMine-MP
+          ref: 85dfee4262256a817439662daee501117e559341 # 5.36.0
+          path: .devtools-compatibility/axolotl-5.36.0
+          persist-credentials: false
       - name: Set up PHP environment
         uses: axolotl-pm/setup-php-action@b8c3f9add4f2ad4a5e2624a1112aba899ee8db0e
         with:
@@ -104,6 +111,9 @@ jobs:
           pm-version-major: "5"
       - name: Install Composer dependencies for PHAR build
         run: composer install --prefer-dist --no-interaction --no-scripts --no-plugins
+      - name: Install Axolotl-PM 5.36.0 source dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress
+        working-directory: .devtools-compatibility/axolotl-5.36.0
       - name: Verify PHP extensions before building the plugin
         run: composer check-platform-reqs
       - name: Build plugin PHAR with Pharynx
@@ -141,5 +151,11 @@ jobs:
       - name: Smoke test isolated plugin startup
         env:
           SERVER_PHAR: ${{ runner.temp }}/PocketMine-MP.phar
+          PLUGIN_PHAR: build/RedSkyBlockX.phar
+        run: python3 .github/scripts/runtime-smoke.py
+      - name: Smoke test minimum declared API 5.36.0
+        env:
+          SERVER_SOURCE: .devtools-compatibility/axolotl-5.36.0
+          EXPECTED_SERVER_COMMIT: 85dfee4262256a817439662daee501117e559341
           PLUGIN_PHAR: build/RedSkyBlockX.phar
         run: python3 .github/scripts/runtime-smoke.py
