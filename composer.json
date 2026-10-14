@@ -1,7 +1,7 @@
 {
     "name": "nhanaz/redskyblockx",
     "description": "Experimental SkyBlock plugin for Axolotl-PM",
-    "license": "GPL-2.0-or-later",
+    "license": "GPL-2.0-only",
     "require": {
         "pocketmine/pocketmine-mp": "^5.36.0",
         "cortexpe/commando": "dev-master",
