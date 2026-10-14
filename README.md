@@ -32,6 +32,6 @@ Changes to island persistence need tests on disposable files and worlds. Do not 
 
 ## License, credits, and support
 
-The repository retains its [GPL version 2 license text](LICENSE) and upstream attribution to [RedCraftGH/RedSkyBlock](https://github.com/RedCraftGH/RedSkyBlock). The current dependency graph includes separately licensed components, and distribution rights for a combined PHAR still need review. No new license or relicensing is claimed here.
+The repository retains the original [GNU General Public License version 2 or later](LICENSE) and attribution to [RedCraftGH/RedSkyBlock](https://github.com/RedCraftGH/RedSkyBlock). The license text expressly permits choosing a later GPL version. For a combined PHAR containing the locked GPL-3.0 and LGPL-3.0-only components, distribution follows GPL version 3 terms for the combined work and retains each dependency's license notice. The source's original license has not been replaced.
 
 Report source issues through [GitHub Issues](https://github.com/NhanAZ-Plugins/RedSkyBlockX/issues). The previous README also linked a [Discord invite](https://discord.gg/j2X83ujT6c) and a [donation page](https://www.paypal.com/paypalme/nhanaz).

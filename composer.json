@@ -1,7 +1,10 @@
 {
+    "name": "nhanaz/redskyblockx",
+    "description": "Experimental SkyBlock plugin for Axolotl-PM",
+    "license": "GPL-2.0-or-later",
     "require": {
         "pocketmine/pocketmine-mp": "^5.36.0",
-        "cortexpe/commando": "dev-master#62db2be0ef4b5d509ee2832de876fdb4da401b6e",
+        "cortexpe/commando": "dev-master",
         "muqsit/simple-packet-handler": "^0.1.7",
         "muqsit/invmenu": "dev-pm5"
     },
