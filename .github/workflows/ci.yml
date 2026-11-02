@@ -93,7 +93,7 @@ jobs:
         run: vendor/bin/phpstan analyze --level=max
   build-phar:
     name: Build and validate plugin PHAR
-    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@8d13a75aaf4f330fdbd93737d58be9cacc41e262 # v1.0.15
+    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@v2 # v1.0.15
     with:
       prepare-dependencies: true
       php-version: "8.2"
@@ -142,12 +142,12 @@ jobs:
           printf '%s  %s\n' "$EXPECTED_SHA256" "$PLUGIN_PHAR" | sha256sum --check
           php tests/verify-phar.php "$PLUGIN_PHAR"
 
-      - name: Download pinned Axolotl-PM 5.49.1 runtime
+      - name: Download pinned Axolotl-PM 5.51.1 runtime
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error \
-            https://github.com/axolotl-pm/PocketMine-MP/releases/download/5.49.1/PocketMine-MP.phar \
+            https://github.com/axolotl-pm/PocketMine-MP/releases/download/5.51.1/PocketMine-MP.phar \
             --output "$RUNNER_TEMP/PocketMine-MP.phar"
           printf '%s  %s\n' \
             'b62ce263c079a00498a49cd3eab0bfa454f4ba195e5f9d62e32927cfc805c665' \
@@ -157,7 +157,7 @@ jobs:
         run: composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --no-plugins
         working-directory: .devtools-compatibility/axolotl-5.36.0
 
-      - name: Smoke test isolated plugin startup on Axolotl-PM 5.49.1
+      - name: Smoke test isolated plugin startup on Axolotl-PM 5.51.1
         env:
           SERVER_PHAR: ${{ runner.temp }}/PocketMine-MP.phar
           PLUGIN_PHAR: ${{ runner.temp }}/devtools-build/${{ needs.build-phar.outputs.plugin-name }}.phar
