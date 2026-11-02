@@ -150,7 +150,7 @@ jobs:
             https://github.com/axolotl-pm/PocketMine-MP/releases/download/5.51.1/PocketMine-MP.phar \
             --output "$RUNNER_TEMP/PocketMine-MP.phar"
           printf '%s  %s\n' \
-            'b62ce263c079a00498a49cd3eab0bfa454f4ba195e5f9d62e32927cfc805c665' \
+            'bcfbd0deff349c2b25b1688299a7d54f1fc8a080d2f95e19884f8e341319021a' \
             "$RUNNER_TEMP/PocketMine-MP.phar" | sha256sum --check
 
       - name: Install Axolotl-PM 5.36.0 source dependencies
