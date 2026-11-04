@@ -5,7 +5,7 @@
     "require": {
         "pocketmine/pocketmine-mp": "^5.36.0",
         "cortexpe/commando": "dev-master",
-        "muqsit/simple-packet-handler": "^0.1.9",
+        "muqsit/simple-packet-handler": "^0.1.10",
         "muqsit/invmenu": "dev-pm5"
     },
     "require-dev": {

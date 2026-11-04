@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf486b3379b97fac941a8e25e39625e7",
+    "content-hash": "04d92426c65c1b78575240605058270c",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -550,16 +550,16 @@
         },
         {
             "name": "muqsit/simple-packet-handler",
-            "version": "v0.1.9",
+            "version": "v0.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/NhanAZ-Libraries/SimplePacketHandler",
-                "reference": "dab60f12dcbec8cf393dc12b281055cb53d48140"
+                "reference": "71e08e41c7aebae181647b26eb9bb30e4ff0a99e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/dab60f12dcbec8cf393dc12b281055cb53d48140",
-                "reference": "dab60f12dcbec8cf393dc12b281055cb53d48140",
+                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/71e08e41c7aebae181647b26eb9bb30e4ff0a99e",
+                "reference": "71e08e41c7aebae181647b26eb9bb30e4ff0a99e",
                 "shasum": ""
             },
             "require": {
@@ -602,7 +602,7 @@
                 }
             ],
             "description": "Handle specific Axolotl-PM data packets",
-            "time": "2026-11-04T21:21:31+00:00"
+            "time": "2026-11-04T21:40:30+00:00"
         },
         {
             "name": "netresearch/jsonmapper",
