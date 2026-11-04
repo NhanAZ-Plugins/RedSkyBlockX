@@ -1,8 +1,14 @@
 # RedSkyBlockX
 
-RedSkyBlockX is an experimental SkyBlock plugin source for Axolotl-PM. It contains island creation, member and permission management, a configurable block generator, and island commands.
+Development alpha SkyBlock plugin source for Axolotl-PM 5
 
 [![CI](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions/workflows/ci.yml/badge.svg)](https://github.com/NhanAZ-Plugins/RedSkyBlockX/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/NhanAZ-Plugins/RedSkyBlockX)](https://github.com/NhanAZ-Plugins/RedSkyBlockX/blob/master/LICENSE)
+[![Discord](https://img.shields.io/discord/986553214889517088?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/j2X83ujT6c)
+
+## Overview
+
+This is an experimental repository. Review its documented limitations before using it on a live server.
 
 ## Status and compatibility
 
