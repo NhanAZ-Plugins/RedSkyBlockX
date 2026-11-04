@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eccbdde455a674b7b0c40a1dad173a83",
+    "content-hash": "cf486b3379b97fac941a8e25e39625e7",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -550,16 +550,16 @@
         },
         {
             "name": "muqsit/simple-packet-handler",
-            "version": "v0.1.7",
+            "version": "v0.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/NhanAZ-Libraries/SimplePacketHandler",
-                "reference": "6e360c71907bfe90d880b906844c91be53f3bcf8"
+                "reference": "dab60f12dcbec8cf393dc12b281055cb53d48140"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/6e360c71907bfe90d880b906844c91be53f3bcf8",
-                "reference": "6e360c71907bfe90d880b906844c91be53f3bcf8",
+                "url": "https://api.github.com/repos/NhanAZ-Libraries/SimplePacketHandler/zipball/dab60f12dcbec8cf393dc12b281055cb53d48140",
+                "reference": "dab60f12dcbec8cf393dc12b281055cb53d48140",
                 "shasum": ""
             },
             "require": {
@@ -567,7 +567,7 @@
                 "pocketmine/pocketmine-mp": "^5.0.0"
             },
             "require-dev": {
-                "axolotl-pm/pocketmine-mp": "5.49.1",
+                "axolotl-pm/pocketmine-mp": "5.51.1",
                 "phpstan/phpstan": "2.3.1",
                 "phpstan/phpstan-phpunit": "^2.0",
                 "phpunit/phpunit": "^10.5"
@@ -602,7 +602,7 @@
                 }
             ],
             "description": "Handle specific Axolotl-PM data packets",
-            "time": "2026-10-13T22:57:46+00:00"
+            "time": "2026-11-04T21:21:31+00:00"
         },
         {
             "name": "netresearch/jsonmapper",

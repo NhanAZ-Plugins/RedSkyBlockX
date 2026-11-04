@@ -93,7 +93,7 @@ jobs:
         run: vendor/bin/phpstan analyze --level=max
   build-phar:
     name: Build and validate plugin PHAR
-    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@v2 # v1.0.15
+    uses: NhanAZ/DevTools/.github/workflows/build-plugin.yml@v2.1.1
     with:
       prepare-dependencies: true
       php-version: "8.4"
