@@ -93,7 +93,7 @@ jobs:
         run: vendor/bin/phpstan analyze --level=max
   build-phar:
     name: Build and validate plugin PHAR
-    uses: AxolotlBucketLabs/DevTools/.github/workflows/build-plugin.yml@v3
+    uses: AxolotlBucketLabs/DevTools/.github/workflows/build-plugin.yml@latest
     with:
       prepare-dependencies: true
       php-version: "8.4"
